@@ -561,8 +561,16 @@ function applyTheme(isDark) {
         if(btn) btn.textContent = '🌙 Dark'; 
     } 
 }
+
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+// ১. শুরুতে সিস্টেম থিম অ্যাপ্লাই করা
 applyTheme(systemDark.matches);
+
+// ২. সিস্টেম থিম পরিবর্তন মনিটর করা (এই অংশটি নতুন যোগ করা হয়েছে)
+systemDark.addEventListener('change', (e) => {
+    applyTheme(e.matches);
+});
 
 function toggleTheme() { applyTheme(!document.body.classList.contains('dark')); }
 let isEn = localStorage.getItem('lang') !== 'bn'; 
