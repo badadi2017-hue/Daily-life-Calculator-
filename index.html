@@ -40,7 +40,19 @@ body.dark {
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; position: fixed; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-base); color: var(--text); transition: background 0.3s; }
+
+/* [UPDATED] Use dvh for keyboard resizing support */
+html, body { 
+  margin: 0; padding: 0; width: 100%; height: 100dvh; 
+  overflow: hidden; position: fixed; 
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+  background: var(--bg-base); color: var(--text); transition: background 0.3s; 
+}
+
+@keyframes sectionSlideUp {
+  0% { opacity: 0; transform: translateY(30px) scale(0.98); filter: blur(5px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
 
 .bg-mesh { position: absolute; width: 100%; height: 100%; z-index: -2; background: radial-gradient(circle at 0% 0%, var(--orb1), transparent 60%), radial-gradient(circle at 100% 100%, var(--orb2), transparent 60%); opacity: 0.25; filter: blur(80px); animation: pulse 10s ease-in-out infinite alternate; }
 @keyframes pulse { 0%{opacity:0.25;} 100%{opacity:0.4;} }
@@ -81,10 +93,16 @@ body.menu-open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate
 body.menu-open .side-menu { left: 0; }
 body.menu-open .overlay { display: block; }
 
-.section { display: none; width: 100%; height: 100%; padding: 70px 12px 10px; flex-direction: column; align-items: center; overflow-y: auto; }
-.section.active { display: flex; }
+/* [UPDATED] Added padding-bottom to allow scrolling past keyboard */
+.section { 
+  display: none; width: 100%; height: 100%; 
+  padding: 70px 12px 350px; 
+  flex-direction: column; align-items: center; 
+  overflow-y: auto; -webkit-overflow-scrolling: touch; 
+}
+.section.active { display: flex; animation: sectionSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-#home { justify-content: flex-start; padding-top: 100px; }
+#home { justify-content: flex-start; padding-top: 100px; padding-bottom: 20px; }
 .greeting { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-align: center; opacity: 0; animation: fadeIn 1s forwards; }
 @keyframes fadeIn { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
 
@@ -414,245 +432,136 @@ input::placeholder { opacity: 0.2; }
 <script>
 /* CORE LOGIC & UPDATES */
 
-// ১. এক্সেন্ট কালার পরিবর্তনের ফাংশন
+// [NEW] Keyboard Obstruction Fix Logic
+function initKeyboardFix() {
+    const allInputs = document.querySelectorAll('input, select');
+    allInputs.forEach(el => {
+        el.addEventListener('focus', (e) => {
+            const parentApp = e.target.closest('.app');
+            // Wait slightly for the keyboard animation to settle
+            setTimeout(() => {
+                if (parentApp) {
+                    parentApp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
+        });
+    });
+}
+
 function changeAccent(color) {
     document.documentElement.style.setProperty('--accent', color);
     localStorage.setItem('dlc_accent', color);
 }
 
-// ২. ইমেজ হিসেবে শেয়ার করার ফাংশন
 async function shareAsImage(secId) {
     playClick();
     const section = document.querySelector(`#${secId} .app`);
-    
-    const options = {
-        backgroundColor: document.body.classList.contains('dark') ? '#1e1e1e' : '#f2f2f7',
-        scale: 2, 
-        borderRadius: 18,
-        useCORS: true,
-        logging: false
-    };
-
+    const options = { backgroundColor: document.body.classList.contains('dark') ? '#1e1e1e' : '#f2f2f7', scale: 2, borderRadius: 18, useCORS: true, logging: false };
     try {
         const canvas = await html2canvas(section, options);
         canvas.toBlob(async (blob) => {
             const file = new File([blob], 'calculation_result.png', { type: 'image/png' });
-            
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: 'Calculator Result',
-                    text: 'Daily Life App থেকে শেয়ার করা হয়েছে।'
-                });
+                await navigator.share({ files: [file], title: 'Calculator Result', text: 'Daily Life App থেকে শেয়ার করা হয়েছে।' });
             } else {
-                const link = document.createElement('a');
-                link.download = 'result.png';
-                link.href = URL.createObjectURL(blob);
-                link.click();
+                const link = document.createElement('a'); link.download = 'result.png'; link.href = URL.createObjectURL(blob); link.click();
             }
         });
-    } catch (err) {
-        console.error("Image generation failed", err);
-    }
+    } catch (err) { console.error("Image generation failed", err); }
 }
 
-// ৩. টেক্সট হিসেবে শেয়ার করার ফাংশন
 async function shareAsText(secId) {
     let resultText = "";
     const title = document.getElementById(secId + 'Title').innerText;
-    
-    if (secId === 'rate') {
-        const t = document.getElementById('total').innerText;
-        const r = document.getElementById('result').innerText;
-        resultText = isEn ? `${title}\nTotal Price: ${t}\nYou will get: ${r}` : `${title}\nমোট দাম: ${t}\nআপনি পাবেন: ${r}`;
-    } else if (secId === 'fuel') {
-        const cost = document.getElementById('resFCost').innerText;
-        const fuel = document.getElementById('resFFuel').innerText;
-        resultText = isEn ? `${title}\nTotal Cost: ₹${cost}\nFuel Needed: ${fuel}` : `${title}\nমোট খরচ: ₹${cost}\nতেল লাগবে: ${fuel}`;
-    } else if (secId === 'age') {
-        const y = document.getElementById('resYears').innerText;
-        const m = document.getElementById('resMonths').innerText;
-        const d = document.getElementById('resDays').innerText;
-        resultText = isEn ? `${title}\nYour Age: ${y} Years, ${m} Months, ${d} Days` : `${title}\nআপনার বয়স: ${y} বছর, ${m} মাস, ${d} দিন`;
-    } else if (secId === 'emi') {
-        const emi = document.getElementById('resEmi').innerText;
-        const total = document.getElementById('resTotalPay').innerText;
-        resultText = isEn ? `${title}\nMonthly EMI: ${emi}\nTotal Payment: ${total}` : `${title}\nমাসিক কিস্তি: ${emi}\nসর্বমোট পরিশোধ: ${total}`;
-    } else if (secId === 'currency') {
-        const res = document.getElementById('curResult').innerText;
-        resultText = isEn ? `${title}\nConverted Amount: ${res}` : `${title}\nরূপান্তরিত পরিমাণ: ${res}`;
-    } else if (secId === 'percent') {
-        const res = document.getElementById('pcRes').innerText;
-        resultText = isEn ? `${title}\nResult: ${res}` : `${title}\nফলাফল: ${res}`;
-    } else if (secId === 'converter') {
-        const res = document.getElementById('cvOut').value;
-        const unit = document.getElementById('cvUnitTo').value;
-        resultText = isEn ? `${title}\nResult: ${res} ${unit}` : `${title}\nফলাফল: ${res} ${unit}`;
-    } else if (secId === 'cash') {
-        const total = document.getElementById('resCashTotal').innerText;
-        const words = document.getElementById('cashInWords').innerText;
-        resultText = isEn ? `${title}\nTotal Cash: ${total}\n${words}` : `${title}\nমোট নগদ: ${total}\n${words}`;
-    }
-
+    if (secId === 'rate') { const t = document.getElementById('total').innerText; const r = document.getElementById('result').innerText; resultText = isEn ? `${title}\nTotal Price: ${t}\nYou will get: ${r}` : `${title}\nমোট দাম: ${t}\nআপনি পাবেন: ${r}`;
+    } else if (secId === 'fuel') { const cost = document.getElementById('resFCost').innerText; const fuel = document.getElementById('resFFuel').innerText; resultText = isEn ? `${title}\nTotal Cost: ₹${cost}\nFuel Needed: ${fuel}` : `${title}\nমোট খরচ: ₹${cost}\nতেল লাগবে: ${fuel}`;
+    } else if (secId === 'age') { const y = document.getElementById('resYears').innerText; const m = document.getElementById('resMonths').innerText; const d = document.getElementById('resDays').innerText; resultText = isEn ? `${title}\nYour Age: ${y} Years, ${m} Months, ${d} Days` : `${title}\nআপনার বয়স: ${y} বছর, ${m} মাস, ${d} দিন`;
+    } else if (secId === 'emi') { const emi = document.getElementById('resEmi').innerText; const total = document.getElementById('resTotalPay').innerText; resultText = isEn ? `${title}\nMonthly EMI: ${emi}\nTotal Payment: ${total}` : `${title}\nমাসিক কিস্তি: ${emi}\nসর্বমোট পরিশোধ: ${total}`;
+    } else if (secId === 'currency') { const res = document.getElementById('curResult').innerText; resultText = isEn ? `${title}\nConverted Amount: ${res}` : `${title}\nরূপান্তরিত পরিমাণ: ${res}`;
+    } else if (secId === 'percent') { const res = document.getElementById('pcRes').innerText; resultText = isEn ? `${title}\nResult: ${res}` : `${title}\nফলাফল: ${res}`;
+    } else if (secId === 'converter') { const res = document.getElementById('cvOut').value; const unit = document.getElementById('cvUnitTo').value; resultText = isEn ? `${title}\nResult: ${res} ${unit}` : `${title}\nফলাফল: ${res} ${unit}`;
+    } else if (secId === 'cash') { const total = document.getElementById('resCashTotal').innerText; const words = document.getElementById('cashInWords').innerText; resultText = isEn ? `${title}\nTotal Cash: ${total}\n${words}` : `${title}\nমোট নগদ: ${total}\n${words}`; }
     const finalMsg = `${resultText}\n\nShared via Daily Life Calculator App 📱`;
-
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: title,
-                text: finalMsg
-            });
-        } catch (err) {
-            console.log("Sharing cancelled");
-        }
-    } else {
-        // ফলব্যাক: ক্লিপবোর্ডে কপি করা
-        navigator.clipboard.writeText(finalMsg);
-        alert(isEn ? "Result copied to clipboard!" : "ফলাফল কপি করা হয়েছে!");
-    }
+    if (navigator.share) { try { await navigator.share({ title: title, text: finalMsg }); } catch (err) { console.log("Sharing cancelled"); } } else { navigator.clipboard.writeText(finalMsg); alert(isEn ? "Result copied to clipboard!" : "ফলাফল কপি করা হয়েছে!"); }
 }
 
-/* BENGALI CALENDAR CALCULATION */
 function getBengaliCalendarDate(date) {
     const months = ["বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ", "পৌষ", "মাঘ", "ফাল্গুন", "চৈত্র"];
     const numbers = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
-    let day = date.getDate();
-    let month = date.getMonth();
-    let year = date.getFullYear();
-    let bnYear = year - 593;
-    let bnMonth, bnDay;
-    if (month === 0) { 
-        if (day >= 15) { bnDay = day - 14; bnMonth = "মাঘ"; bnYear = year - 594; } 
-        else { bnDay = day + 16; bnMonth = "পৌষ"; bnYear = year - 594; }
-    } else if (month === 1) { 
-        if (day >= 14) { bnDay = day - 13; bnMonth = "ফাল্গুন"; bnYear = year - 594; } 
-        else { bnDay = day + 17; bnMonth = "মাঘ"; bnYear = year - 594; }
+    let day = date.getDate(); let month = date.getMonth(); let year = date.getFullYear();
+    let bnYear = year - 593; let bnMonth, bnDay;
+    if (month === 0) { if (day >= 15) { bnDay = day - 14; bnMonth = "মাঘ"; bnYear = year - 594; } else { bnDay = day + 16; bnMonth = "পৌষ"; bnYear = year - 594; }
+    } else if (month === 1) { if (day >= 14) { bnDay = day - 13; bnMonth = "ফাল্গুন"; bnYear = year - 594; } else { bnDay = day + 17; bnMonth = "মাঘ"; bnYear = year - 594; }
     } else { bnDay = day; bnMonth = months[month]; bnYear = year - 593; }
     const toBnNum = (n) => n.toString().split('').map(d => numbers[d]).join('');
     return `${toBnNum(bnDay)} ${bnMonth}, ${toBnNum(bnYear)} (বঙ্গাব্দ)`;
 }
 
-/* CORE SYSTEM */
 function toggleSettings() {
     const modal = document.getElementById('settingsModal');
     const overlay = document.getElementById('modalOverlay');
     const btn = document.getElementById('setBtn');
     const active = modal.classList.toggle('active');
-    btn.classList.toggle('active'); 
-    overlay.style.display = active ? 'block' : 'none';
+    btn.classList.toggle('active'); overlay.style.display = active ? 'block' : 'none';
 }
 
-function toggleGlobalLang() {
-    isEn = !isEn;
-    saveLang();
-    const btn = document.getElementById('settingLangBtn');
-    if(btn) btn.textContent = isEn ? '🌐 EN' : '🌐 BN';
-    renderAllLangs();
-}
+function toggleGlobalLang() { isEn = !isEn; saveLang(); const btn = document.getElementById('settingLangBtn'); if(btn) btn.textContent = isEn ? '🌐 EN' : '🌐 BN'; renderAllLangs(); }
 
 function applyTheme(isDark) { 
-    if(isDark) { 
-        document.body.classList.add('dark'); 
-        const btn = document.getElementById('settingThemeBtn');
-        if(btn) btn.textContent = '☀️ Light'; 
-    } else { 
-        document.body.classList.remove('dark'); 
-        const btn = document.getElementById('settingThemeBtn');
-        if(btn) btn.textContent = '🌙 Dark'; 
-    } 
+    if(isDark) { document.body.classList.add('dark'); const btn = document.getElementById('settingThemeBtn'); if(btn) btn.textContent = '☀️ Light'; 
+    } else { document.body.classList.remove('dark'); const btn = document.getElementById('settingThemeBtn'); if(btn) btn.textContent = '🌙 Dark'; } 
 }
-
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
-
-// ১. শুরুতে সিস্টেম থিম অ্যাপ্লাই করা
 applyTheme(systemDark.matches);
-
-// ২. সিস্টেম থিম পরিবর্তন মনিটর করা (এই অংশটি নতুন যোগ করা হয়েছে)
-systemDark.addEventListener('change', (e) => {
-    applyTheme(e.matches);
-});
+systemDark.addEventListener('change', (e) => { applyTheme(e.matches); });
 
 function toggleTheme() { applyTheme(!document.body.classList.contains('dark')); }
 let isEn = localStorage.getItem('lang') !== 'bn'; 
-
 function toggleMenu(){ document.body.classList.toggle('menu-open'); }
 
 function showSection(id){ 
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
-    document.getElementById(id).classList.add('active'); 
+    const target = document.getElementById(id);
+    target.classList.add('active'); 
     document.getElementById('homeNavBtn').style.display = (id === 'home') ? 'none' : 'flex';
 }
+
 function onMenuClick(id){ showSection(id); toggleMenu(); }
 
-document.querySelectorAll('input, select').forEach(el => { el.addEventListener('click', playClick); el.addEventListener('focus', playClick); });
 function toBn(num) { if(isEn) return num; const digits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯']; return num.toString().split('').map(d => digits[d]||d).join(''); }
 function saveLang(){ localStorage.setItem('lang',isEn?'en':'bn'); }
 
-const inputs = document.querySelectorAll('input, select');
 const footer = document.querySelector('.footer-credit');
-inputs.forEach(input => {
-    input.addEventListener('focus', () => footer.style.opacity = '0');
-    input.addEventListener('blur', () => footer.style.opacity = '1');
-});
 
 window.addEventListener('load', () => {
     if(document.getElementById('settingSoundBtn')) document.getElementById('settingSoundBtn').textContent = isMuted ? '🔇 Off' : '🔊 On';
     if(document.getElementById('settingLangBtn')) document.getElementById('settingLangBtn').textContent = isEn ? '🌐 EN' : '🌐 BN';
-    const savedName = localStorage.getItem('dlc_username');
-    if(savedName) document.getElementById('userNameInput').value = savedName;
+    const savedName = localStorage.getItem('dlc_username'); if(savedName) document.getElementById('userNameInput').value = savedName;
+    const savedAccent = localStorage.getItem('dlc_accent'); if (savedAccent) { changeAccent(savedAccent); document.getElementById('accentPicker').value = savedAccent; }
     
-    const savedAccent = localStorage.getItem('dlc_accent');
-    if (savedAccent) {
-        changeAccent(savedAccent);
-        document.getElementById('accentPicker').value = savedAccent;
-    }
+    initKeyboardFix(); // Initialize the keyboard scroll fix
 });
 
-/* VOICE READOUT LOGIC */
 function readResult(secId) {
     let text = "";
-    if (secId === 'rate') {
-        const res = document.getElementById('result').innerText;
-        text = isEn ? `You will get ${res}` : `আপনি পাবেন ${res}`;
-    } else if (secId === 'fuel') {
-        const cost = document.getElementById('resFCost').innerText;
-        text = isEn ? `Total cost is ${cost}` : `মোট খরচ ${cost} টাকা`;
-    } else if (secId === 'age') {
-        const y = document.getElementById('resYears').innerText;
-        const m = document.getElementById('resMonths').innerText;
-        text = isEn ? `Your age is ${y} years and ${m} months` : `আপনার বয়স ${y} বছর ${m} মাস`;
-    } else if (secId === 'emi') {
-        const emi = document.getElementById('resEmi').innerText;
-        text = isEn ? `Monthly EMI is ${emi}` : `মাসিক কিস্তি ${emi} টাকা`;
-    } else if (secId === 'cash') {
-        const total = document.getElementById('resCashTotal').innerText;
-        text = isEn ? `Total cash is ${total}` : `মোট নগদ টাকা হলো ${total}`;
-    } else if (secId === 'currency') {
-        const res = document.getElementById('curResult').innerText;
-        text = isEn ? `Converted result is ${res}` : `ফলাফল হলো ${res}`;
-    } else if (secId === 'percent') {
-        const res = document.getElementById('pcRes').innerText;
-        text = isEn ? `The result is ${res}` : `ফলাফল হলো ${res}`;
-    } else if (secId === 'converter') {
-        const res = document.getElementById('cvOut').value;
-        text = isEn ? `Result is ${res}` : `ফলাফল হলো ${res}`;
-    }
-
-    if (!text) return;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = isEn ? 'en-US' : 'bn-BD';
-    utterance.rate = 1.0;
-    window.speechSynthesis.speak(utterance);
+    if (secId === 'rate') { const res = document.getElementById('result').innerText; text = isEn ? `You will get ${res}` : `আপনি পাবেন ${res}`;
+    } else if (secId === 'fuel') { const cost = document.getElementById('resFCost').innerText; text = isEn ? `Total cost is ${cost}` : `মোট খরচ ${cost} টাকা`;
+    } else if (secId === 'age') { const y = document.getElementById('resYears').innerText; const m = document.getElementById('resMonths').innerText; text = isEn ? `Your age is ${y} years and ${m} months` : `আপনার বয়স ${y} বছর ${m} মাস`;
+    } else if (secId === 'emi') { const emi = document.getElementById('resEmi').innerText; text = isEn ? `Monthly EMI is ${emi}` : `মাসিক কিস্তি ${emi} টাকা`;
+    } else if (secId === 'cash') { const total = document.getElementById('resCashTotal').innerText; text = isEn ? `Total cash is ${total}` : `মোট নগদ টাকা হলো ${total}`;
+    } else if (secId === 'currency') { const res = document.getElementById('curResult').innerText; text = isEn ? `Converted result is ${res}` : `ফলাফল হলো ${res}`;
+    } else if (secId === 'percent') { const res = document.getElementById('pcRes').innerText; text = isEn ? `The result is ${res}` : `ফলাফল হলো ${res}`;
+    } else if (secId === 'converter') { const res = document.getElementById('cvOut').value; text = isEn ? `Result is ${res}` : `ফলাফল হলো ${res}`; }
+    if (!text) return; const utterance = new SpeechSynthesisUtterance(text); utterance.lang = isEn ? 'en-US' : 'bn-BD'; utterance.rate = 1.0; window.speechSynthesis.speak(utterance);
 }
 
-/* CLOCK SYSTEM */
 const circles={hour:document.querySelector('.hour'),min:document.querySelector('.min'),sec:document.querySelector('.sec')};
 Object.values(circles).forEach(c=>{ const r = c.r.baseVal.value; c.len = 2 * Math.PI * r; c.style.strokeDasharray = c.len; });
 
 function updateClocks(){
-    const d=new Date();
-    const hRaw = d.getHours();
-    const savedName = localStorage.getItem('dlc_username') || "";
+    const d=new Date(); const hRaw = d.getHours(); const savedName = localStorage.getItem('dlc_username') || "";
     let greet = "";
     if(hRaw >= 5 && hRaw < 12) greet = isEn ? "Good Morning" : "শুভ সকাল";
     else if(hRaw >= 12 && hRaw < 17) greet = isEn ? "Good Afternoon" : "শুভ দুপুর";
@@ -668,26 +577,13 @@ function updateClocks(){
     document.getElementById('bnCalendar').textContent = getBengaliCalendarDate(d);
     const session = hRaw >= 12 ? "PM" : "AM";
     let h12 = hRaw % 12; h12 = h12 ? h12 : 12; 
-    const hh = h12.toString().padStart(2, '0');
-    const mm = m.toString().padStart(2, '0');
-    const ss = s.toString().padStart(2, '0');
-    document.querySelectorAll('.mini-clock').forEach(mc => {
-        mc.querySelector('.mc-h').textContent = hh; mc.querySelector('.mc-m').textContent = mm;
-        mc.querySelector('.mc-s').textContent = ss; mc.querySelector('.mc-ampm').textContent = session;
-    });
+    const hh = h12.toString().padStart(2, '0'); const mm = m.toString().padStart(2, '0'); const ss = s.toString().padStart(2, '0');
+    document.querySelectorAll('.mini-clock').forEach(mc => { mc.querySelector('.mc-h').textContent = hh; mc.querySelector('.mc-m').textContent = mm; mc.querySelector('.mc-s').textContent = ss; mc.querySelector('.mc-ampm').textContent = session; });
 }
 setInterval(updateClocks,1000); updateClocks();
 
-const menuListEl = document.getElementById('menuList');
-Sortable.create(menuListEl, {
-    animation: 250, delay: 150, delayOnTouchOnly: true,
-    onEnd: function () {
-        const order = Array.from(menuListEl.children).map(btn => btn.innerText);
-        localStorage.setItem('dlc_menu_order', JSON.stringify(order));
-    }
-});
+Sortable.create(document.getElementById('menuList'), { animation: 250, delay: 150, delayOnTouchOnly: true, onEnd: function () { const order = Array.from(document.getElementById('menuList').children).map(btn => btn.innerText); localStorage.setItem('dlc_menu_order', JSON.stringify(order)); } });
 
-/* CALCULATORS LOGIC */
 function renderRateLang(){ rateTitle.textContent=isEn?'Price Calculator':'মূল্য ক্যালকুলেটর'; lp.textContent=isEn?'Price per Kg':'প্রতি কেজি মূল্য'; lw.textContent=isEn?'Weight':'ওজন'; lu.textContent=isEn?'Unit':'একক'; lt.textContent=isEn?'Total':'মোট দাম'; la.textContent=isEn?'Pay Amount':'আমি দিতে চাই'; lg.textContent=isEn?'Result':'আপনি পাবেন'; calc(); }
 function calc(){ let p=+price.value||0, w=+weight.value||0; if(unit.value==='g')w/=1000; total.textContent="₹ "+(p*w).toFixed(2); let a=+amount.value||0; if(p>0){ let g=(a/p)*1000; result.textContent=g>=1000?(g/1000).toFixed(2)+(isEn?' Kg':' কেজি'):Math.round(g)+(isEn?' g':' গ্রাম'); } }
 ['input','change'].forEach(e=>{ price.addEventListener(e,calc); weight.addEventListener(e,calc); unit.addEventListener(e,calc); amount.addEventListener(e,calc); });
@@ -729,31 +625,19 @@ function initCashCounter() {
     const container = document.getElementById('cashList');
     container.innerHTML = '';
     notes.forEach(n => {
-        const row = document.createElement('div');
-        row.className = 'info-row'; row.style.padding = '6px 10px';
+        const row = document.createElement('div'); row.className = 'info-row'; row.style.padding = '6px 10px';
         row.innerHTML = `<div style="display:flex; align-items:center; gap:10px; flex:1;"><span style="font-weight:700; width:40px; color:var(--accent);">₹${n}</span><input type="number" id="note_${n}" placeholder="0" inputmode="numeric" oninput="doCashCalc()" style="height:35px; text-align:center; flex:1;"></div><div style="flex:1; text-align:right; font-weight:700; color:var(--text-sec);" id="sub_${n}">0</div>`;
         container.appendChild(row);
     });
 }
 function doCashCalc() {
     let grandTotal = 0;
-    notes.forEach(n => {
-        const qty = parseInt(document.getElementById(`note_${n}`).value) || 0;
-        const sub = qty * n; grandTotal += sub;
-        document.getElementById(`sub_${n}`).textContent = toBn(sub.toLocaleString('en-IN'));
-    });
+    notes.forEach(n => { const qty = parseInt(document.getElementById(`note_${n}`).value) || 0; const sub = qty * n; grandTotal += sub; document.getElementById(`sub_${n}`).textContent = toBn(sub.toLocaleString('en-IN')); });
     document.getElementById('resCashTotal').textContent = (isEn ? "₹ " : "৳ ") + toBn(grandTotal.toLocaleString('en-IN'));
     const el = document.getElementById('cashInWords');
-    if(grandTotal === 0) el.textContent = isEn ? "Zero" : "শুন্য টাকা";
-    else el.textContent = isEn ? `Total: ${grandTotal.toLocaleString('en-IN')} Rupees` : `মোট: ${toBn(grandTotal.toLocaleString('en-IN'))} টাকা মাত্র`;
+    if(grandTotal === 0) el.textContent = isEn ? "Zero" : "শুন্য টাকা"; else el.textContent = isEn ? `Total: ${grandTotal.toLocaleString('en-IN')} Rupees` : `মোট: ${toBn(grandTotal.toLocaleString('en-IN'))} টাকা মাত্র`;
 }
-function clearCash() { 
-    const state = {};
-    notes.forEach(n => { const el = document.getElementById(`note_${n}`); state[el.id] = el.value; });
-    undoHistory['cash'] = state;
-    notes.forEach(n => { document.getElementById(`note_${n}`).value = ''; document.getElementById(`sub_${n}`).textContent = '0'; localStorage.removeItem('dlc_note_' + n); }); 
-    doCashCalc(); 
-}
+function clearCash() { const state = {}; notes.forEach(n => { const el = document.getElementById(`note_${n}`); state[el.id] = el.value; }); undoHistory['cash'] = state; notes.forEach(n => { document.getElementById(`note_${n}`).value = ''; document.getElementById(`sub_${n}`).textContent = '0'; localStorage.removeItem('dlc_note_' + n); }); doCashCalc(); }
 function renderCashLang() { cashTitle.textContent = isEn ? 'Cash Counter' : 'টাকা গণনা'; lblCashTotal.textContent = isEn ? 'Grand Total' : 'সর্বমোট টাকা'; doCashCalc(); }
 
 let undoHistory = {};
@@ -763,10 +647,7 @@ function undoData(secId) { if(!undoHistory[secId]) return; const state = undoHis
 function triggerCalc(secId) { if(secId === 'fuel') doFuelCalc(); else if(secId === 'rate') calc(); else if(secId === 'emi') doEmiCalc(); else if(secId === 'currency') convertCurrency(); else if(secId === 'percent') doPercentCalc(); else if(secId === 'converter') doConvert(); else if(secId === 'age') doAgeCalc(); else if(secId === 'cash') doCashCalc(); }
 function renderAllLangs(){ renderFuelLang(); renderRateLang(); renderPercentLang(); renderCvLang(); renderCurrencyLang(); renderAgeLang(); renderEmiLang(); renderCashLang(); }
 
-initCashCounter();
-renderAllLangs();
-initAutoSave();
-doFuelCalc(); doEmiCalc(); calc(); doPercentCalc(); doConvert(); doAgeCalc();
+initCashCounter(); renderAllLangs(); initAutoSave(); doFuelCalc(); doEmiCalc(); calc(); doPercentCalc(); doConvert(); doAgeCalc();
 </script>
 </body>
 </html>
