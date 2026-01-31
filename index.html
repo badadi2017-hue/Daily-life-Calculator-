@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Daily Life Calculator</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -41,7 +41,6 @@ body.dark {
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-/* [UPDATED] Use dvh for keyboard resizing support */
 html, body { 
   margin: 0; padding: 0; width: 100%; height: 100dvh; 
   overflow: hidden; position: fixed; 
@@ -63,7 +62,17 @@ html, body {
 .f3 { width: 150px; height: 150px; background: #34C759; top: 40%; left: 60%; animation-duration: 32s; animation-delay: -10s; opacity: 0.2; }
 @keyframes float { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(30px, -50px); } 66% { transform: translate(-20px, 20px); } }
 
-.ui-btn { position: fixed; top: 12px; width: 44px; height: 44px; border: none; border-radius: 50%; background: var(--glass-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); color: var(--text); font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3000; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+/* [UPDATED] z-index and safe-area-inset-top for UI Buttons */
+.ui-btn { 
+  position: fixed; 
+  top: max(12px, env(safe-area-inset-top)); 
+  width: 44px; height: 44px; border: none; border-radius: 50%; 
+  background: var(--glass-card); backdrop-filter: blur(20px); 
+  -webkit-backdrop-filter: blur(20px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+  color: var(--text); font-size: 20px; display: flex; align-items: center; 
+  justify-content: center; cursor: pointer; z-index: 5000; 
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+}
 .ui-btn:active { transform: scale(0.95); }
 
 .settings-btn { right: 12px; font-size: 18px; }
@@ -80,20 +89,19 @@ body.menu-open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate
 .settings-modal.active { display: block; opacity: 1; transform: translateY(0); }
 .modal-overlay { position: fixed; inset: 0; background: transparent; display: none; z-index: 3500; }
 .setting-item { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
-.setting-item span { font-weight: 600; color: var(--text-sec); font-size: 13px; }
+.setting-item span {  600; color: var(--text-sec); font-size: 13px; }
 
-.mini-btn { padding: 6px 14px; font-size: 14px; font-weight: 700; background: var(--glass-input); color: var(--accent); border: none; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+.mini-btn { padding: 6px 14px; font-size: 14px;  700; background: var(--glass-input); color: var(--accent); border: none; border-radius: 10px; cursor: pointer; transition: 0.2s; }
 .mini-btn:active { transform: scale(0.9); }
 
 .side-menu { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: var(--glass-menu); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-right: 0.5px solid var(--glass-border); padding: 80px 20px 20px; box-shadow: 10px 0 40px rgba(0,0,0,0.1); transition: 0.35s cubic-bezier(0.32, 0.72, 0, 1); z-index: 2500; overflow-y: auto; }
 #menuList { display: flex; flex-direction: column; }
-.side-menu button { width: 100%; padding: 16px 20px; margin-bottom: 10px; border: none; border-radius: 14px; background: transparent; color: var(--accent); font-size: 17px; font-weight: 600; text-align: left; cursor: pointer; transition: background 0.2s; touch-action: none; }
+.side-menu button { width: 100%; padding: 16px 20px; margin-bottom: 10px; border: none; border-radius: 14px; background: transparent; color: var(--accent); font-size: 17px;  600; text-align: left; cursor: pointer; transition: background 0.2s; touch-action: none; }
 
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); backdrop-filter: blur(5px); display: none; z-index: 2000; }
 body.menu-open .side-menu { left: 0; }
 body.menu-open .overlay { display: block; }
 
-/* [UPDATED] Added padding-bottom to allow scrolling past keyboard */
 .section { 
   display: none; width: 100%; height: 100%; 
   padding: 70px 12px 350px; 
@@ -103,7 +111,7 @@ body.menu-open .overlay { display: block; }
 .section.active { display: flex; animation: sectionSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
 #home { justify-content: flex-start; padding-top: 100px; padding-bottom: 20px; }
-.greeting { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-align: center; opacity: 0; animation: fadeIn 1s forwards; }
+.greeting { font-size: 28px;  700; color: var(--text); margin-bottom: 10px; text-align: center; opacity: 0; animation: fadeIn 1s forwards; }
 @keyframes fadeIn { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
 
 .clock-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px 0; }
@@ -114,28 +122,28 @@ circle { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.1s l
 .min { stroke: var(--c-min); }
 .hour { stroke: var(--c-hour); }
 .digital-wrap { margin-top: 0; text-align: center; z-index: 10; position: relative; }
-.digital { font-size: 52px; font-weight: 300; color: var(--text); letter-spacing: -1px; }
-.date { font-size: 16px; font-weight: 500; color: var(--text-sec); margin-top: 2px; text-transform: uppercase; }
-.bn-date { font-size: 15px; font-weight: 700; color: var(--accent); margin-top: 4px; }
+.digital { font-size: 52px;  300; color: var(--text); letter-spacing: -1px; }
+.date { font-size: 16px;  500; color: var(--text-sec); margin-top: 2px; text-transform: uppercase; }
+.bn-date { font-size: 15px;  700; color: var(--accent); margin-top: 4px; }
 
 .quick-links { display: flex; gap: 12px; margin-top: 40px; width: 100%; max-width: 320px; justify-content: center; }
 .q-card { flex: 1; background: var(--glass-card); border: 0.5px solid var(--glass-border); border-radius: 16px; padding: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .q-card:active { transform: scale(0.95); }
 .q-icon { font-size: 24px; }
-.q-name { font-size: 11px; font-weight: 600; color: var(--text-sec); }
+.q-name { font-size: 11px;  600; color: var(--text-sec); }
 
 .mini-clock { display: flex; gap: 4px; align-items: center; justify-content: center; margin-bottom: 14px; transform: scale(1.1); }
-.mc-card { background: var(--glass-input); border: 0.5px solid var(--glass-border); backdrop-filter: blur(12px); padding: 6px 8px; border-radius: 8px; font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace; color: var(--text); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+.mc-card { background: var(--glass-input); border: 0.5px solid var(--glass-border); backdrop-filter: blur(12px); padding: 6px 8px; border-radius: 8px; font-size: 18px;  700; font-family: 'Courier New', monospace; color: var(--text); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
 .mc-sep { font-size: 18px; color: var(--text-sec); animation: blink 1s infinite; }
-.mc-ampm { font-size: 11px; color: var(--text-sec); margin-left: 4px; font-weight: 700; text-transform: uppercase; margin-top: 6px; }
+.mc-ampm { font-size: 11px; color: var(--text-sec); margin-left: 4px;  700; text-transform: uppercase; margin-top: 6px; }
 @keyframes blink { 50% { opacity: 0; } }
 
 .app { width: 100%; max-width: 400px; background: var(--glass-card); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 0.5px solid var(--glass-border); border-radius: 18px; box-shadow: var(--shadow); padding: 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
 .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.header-row h2 { margin: 0; font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+.header-row h2 { margin: 0; font-size: 18px;  700; color: var(--text); letter-spacing: -0.5px; }
 
 .btn-group { display: flex; gap: 6px; }
-.lang-btn { padding: 6px 12px; font-size: 13px; font-weight: 600; background: var(--glass-input); color: var(--accent); border: none; border-radius: 100px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
+.lang-btn { padding: 6px 12px; font-size: 13px;  600; background: var(--glass-input); color: var(--accent); border: none; border-radius: 100px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
 .clear-btn { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
 .undo-btn { background: rgba(255, 149, 0, 0.1); color: var(--warn); }
 .share-btn { background: rgba(0, 122, 255, 0.1); color: var(--accent); }
@@ -143,7 +151,7 @@ circle { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.1s l
 
 .swap-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass-input); color: var(--accent); font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; align-self: flex-end; margin-bottom: 4px; transition: 0.2s; }
 
-label { font-size: 11px; font-weight: 600; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; margin-left: 4px; display: block; }
+label { font-size: 11px;  600; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; margin-left: 4px; display: block; }
 input, select { width: 100%; height: 42px; padding: 0 12px; background: var(--glass-input); border: none; border-radius: 10px; color: var(--text); font-size: 17px; outline: none; transition: 0.2s; font-family: inherit; }
 input:focus, select:focus { background: var(--glass-input); box-shadow: 0 0 0 2px var(--accent); }
 input::placeholder { opacity: 0.2; }
@@ -153,13 +161,13 @@ input::placeholder { opacity: 0.2; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .box { padding: 10px; text-align: center; background: var(--glass-input); border-radius: 12px; }
 .box span:first-child { font-size: 11px; color: var(--text-sec); }
-.total { display: block; font-size: 18px; font-weight: 700; color: var(--text); margin-top: 2px; }
+.total { display: block; font-size: 18px;  700; color: var(--text); margin-top: 2px; }
 .box-compact { padding: 6px 8px; border-radius: 10px; }
 
 .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin-bottom: 6px; background: var(--glass-input); border-radius: 10px; }
 .info-label { font-size: 13px; color: var(--text-sec); }
-.info-val { font-size: 15px; font-weight: 700; color: var(--text); }
-.info-title { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin: 12px 0 6px; padding-left: 4px; }
+.info-val { font-size: 15px;  700; color: var(--text); }
+.info-title { font-size: 12px;  700; color: var(--accent); text-transform: uppercase; margin: 12px 0 6px; padding-left: 4px; }
 
 .emi-bar-wrap { height: 8px; width: 100%; background: var(--emi-principal); border-radius: 4px; overflow: hidden; margin: 10px 0 4px; display: flex; }
 .emi-bar-interest { height: 100%; background: var(--emi-interest); width: 0%; transition: width 0.5s ease; }
@@ -167,7 +175,7 @@ input::placeholder { opacity: 0.2; }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
 .rate-info { font-size: 10px; color: var(--text-sec); text-align: right; margin-top: 4px; }
 
-.footer-credit { position: fixed; bottom: 6px; width: 100%; text-align: center; font-size: 10px; color: var(--text-sec); pointer-events: none; transition: opacity 0.2s; z-index: 100; }
+.footer-credit { position: fixed; bottom: 6px; width: 100%; text-align: center; font-size: 16px; color: var(--text-sec); pointer-events: none; transition: opacity 0.2s; z-index: 100; }
 </style>
 </head>
 
@@ -227,7 +235,7 @@ input::placeholder { opacity: 0.2; }
 </div>
 
 <div class="side-menu">
- <div style="font-size:24px; font-weight:700; margin-bottom:20px; padding-left:10px;">Menu</div>
+ <div style="font-size:24px; 700; margin-bottom:20px; padding-left:10px;">Menu</div>
  <div id="menuList">
      <button onclick="onMenuClick('home'); playClick()">Home</button>
      <button onclick="onMenuClick('rate'); playClick()">Price Calculator</button>
@@ -235,7 +243,7 @@ input::placeholder { opacity: 0.2; }
      <button onclick="onMenuClick('age'); playClick()">Age Calculator</button>
      <button onclick="onMenuClick('emi'); playClick()">EMI Calculator</button>
      <button onclick="onMenuClick('currency'); playClick()">Currency Converter</button>
-     <button onclick="onMenuClick('percent'); playClick()">Percentage</button>
+     <button onclick="onMenuClick('percent'); playClick()">Percentage Calculator</button>
      <button onclick="onMenuClick('converter'); playClick()">Unit Converter</button>
      <button onclick="onMenuClick('cash'); playClick()">Cash Counter</button>
  </div>
@@ -357,6 +365,7 @@ input::placeholder { opacity: 0.2; }
  <div class="app">
   <div class="header-row"><h2 id="curTitle">Currency Converter</h2>
    <div class="btn-group">
+    <button class="lang-btn" onclick="refreshCurrencyRates(); playClick()">🔄</button>
     <button class="lang-btn voice-btn" onclick="readResult('currency'); playClick()">🔊</button>
     <button class="lang-btn share-btn" onclick="shareAsText('currency'); playClick()">📋</button>
     <button class="lang-btn share-btn" onclick="shareAsImage('currency')">📤</button>
@@ -402,7 +411,7 @@ input::placeholder { opacity: 0.2; }
   </div>
   <div><label id="cvLblCat">Category</label><select id="cvCat" onchange="updateCvUnits(); playClick()"><option value="len">Length</option><option value="wgt">Weight</option><option value="temp">Temperature</option><option value="time">Time</option><option value="speed">Speed</option><option value="data">Data</option><option value="power">Power</option><option value="land">Indian Land</option></select></div>
   <div class="row"><div style="flex:1.5;"><label id="cvLblFrom">From</label><input id="cvIn" type="number" inputmode="decimal" placeholder="0"></div><div style="flex:1;"><label>&nbsp;</label><select id="cvUnitFrom" onchange="doConvert(); playClick()"></select></div></div>
-  <div class="row"><div style="flex:1.5;"><label id="cvLblTo">To</label><input id="cvOut" type="text" readonly style="background:transparent; font-weight:700; border:1px solid var(--glass-border);"></div><div style="flex:1;"><label>&nbsp;</label><select id="cvUnitTo" onchange="doConvert(); playClick()"></select></div></div>
+  <div class="row"><div style="flex:1.5;"><label id="cvLblTo">To</label><input id="cvOut" type="text" readonly style="background:transparent; 700; border:1px solid var(--glass-border);"></div><div style="flex:1;"><label>&nbsp;</label><select id="cvUnitTo" onchange="doConvert(); playClick()"></select></div></div>
  </div>
 </section>
 
@@ -423,7 +432,7 @@ input::placeholder { opacity: 0.2; }
     <span id="lblCashTotal">Grand Total</span>
     <span class="total" id="resCashTotal" style="font-size: 26px; color: #34C759;">₹ 0</span>
   </div>
-  <div class="rate-info" id="cashInWords" style="text-align: center; margin-top: 8px; font-weight: 600;">Zero Rupees Only</div>
+  <div class="rate-info" id="cashInWords" style="text-align: center; margin-top: 8px;  600;">Zero Rupees Only</div>
  </div>
 </section>
 
@@ -432,13 +441,32 @@ input::placeholder { opacity: 0.2; }
 <script>
 /* CORE LOGIC & UPDATES */
 
-// [NEW] Keyboard Obstruction Fix Logic
+/* [UPDATED] Visual Viewport Logic to keep buttons visible */
 function initKeyboardFix() {
+    if (!window.visualViewport) return;
+
+    const buttons = document.querySelectorAll('.ui-btn');
+    
+    window.visualViewport.addEventListener('resize', () => {
+        const offset = window.visualViewport.offsetTop;
+        
+        buttons.forEach(btn => {
+            if (window.visualViewport.height < window.innerHeight) {
+                // When keyboard is open
+                btn.style.position = 'absolute'; 
+                btn.style.top = (offset + 12) + 'px';
+            } else {
+                // When keyboard is closed
+                btn.style.position = 'fixed';
+                btn.style.top = '12px';
+            }
+        });
+    });
+
     const allInputs = document.querySelectorAll('input, select');
     allInputs.forEach(el => {
         el.addEventListener('focus', (e) => {
             const parentApp = e.target.closest('.app');
-            // Wait slightly for the keyboard animation to settle
             setTimeout(() => {
                 if (parentApp) {
                     parentApp.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -541,7 +569,7 @@ window.addEventListener('load', () => {
     const savedName = localStorage.getItem('dlc_username'); if(savedName) document.getElementById('userNameInput').value = savedName;
     const savedAccent = localStorage.getItem('dlc_accent'); if (savedAccent) { changeAccent(savedAccent); document.getElementById('accentPicker').value = savedAccent; }
     
-    initKeyboardFix(); // Initialize the keyboard scroll fix
+    initKeyboardFix(); 
 });
 
 function readResult(secId) {
@@ -605,7 +633,17 @@ const currencyList = [{code:"USD",en:"USA Dollar",bn:"আমেরিকান �
 let exchangeRates={}, lastFetch=0;
 function renderCurrencyLang(){ curTitle.textContent=isEn?'Currency Converter':'কারেন্সি কনভার্টার'; curLblAmount.textContent=isEn?'Amount':'পরিমাণ'; curLblFrom.textContent=isEn?'From':'থেকে'; curLblTo.textContent=isEn?'To':'তে'; curLblResult.textContent=isEn?'Result':'ফলাফল'; populateCurrencySelects(true); }
 function populateCurrencySelects(k=false){ const f=curFrom.value, t=curTo.value; curFrom.innerHTML=""; curTo.innerHTML=""; currencyList.forEach(c=>{ const n=isEn?`${c.code}-${c.en}`:`${c.code}-${c.bn}`; curFrom.add(new Option(n,c.code)); curTo.add(new Option(n,c.code)); }); if(k&&f&&t){ curFrom.value=f; curTo.value=t; } else { curFrom.value="USD"; curTo.value="BDT"; } convertCurrency(); }
-async function convertCurrency(){ const f=curFrom.value, t=curTo.value, a=parseFloat(curAmount.value); if(isNaN(a)||!f||!t){ curResult.textContent="-"; return; } const n=Date.now(); if(Object.keys(exchangeRates).length===0||(n-lastFetch>3600000)){ try{ const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD'); const d=await r.json(); exchangeRates=d.rates; lastFetch=n; }catch(e){ return; } } const rf=exchangeRates[f], rt=exchangeRates[t]; if(rf&&rt){ curResult.textContent=`${t} ${((a/rf)*rt).toFixed(2)}`; } }
+
+async function refreshCurrencyRates() { 
+    const info = document.getElementById('curRateInfo');
+    info.textContent = isEn ? "Updating rates..." : "রেট আপডেট হচ্ছে...";
+    lastFetch = 0; 
+    await convertCurrency(); 
+    info.textContent = isEn ? "Rates updated successfully!" : "রেট আপডেট হয়েছে!";
+    setTimeout(() => { if(lastFetch !== 0) convertCurrency(); }, 2000); 
+}
+
+async function convertCurrency(){ const f=curFrom.value, t=curTo.value, a=parseFloat(curAmount.value); if(isNaN(a)||!f||!t){ curResult.textContent="-"; return; } const n=Date.now(); if(Object.keys(exchangeRates).length===0||(n-lastFetch>3600000)){ try{ const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD'); const d=await r.json(); exchangeRates=d.rates; lastFetch=n; const timeStr = new Date(lastFetch).toLocaleTimeString(); document.getElementById('curRateInfo').textContent = isEn ? `Last updated: ${timeStr}` : `শেষ আপডেট: ${timeStr}`; }catch(e){ return; } } const rf=exchangeRates[f], rt=exchangeRates[t]; if(rf&&rt){ curResult.textContent=`${t} ${((a/rf)*rt).toFixed(2)}`; } }
 function swapCurrency(){ const t=curFrom.value; curFrom.value=curTo.value; curTo.value=t; convertCurrency(); }
 curAmount.addEventListener('input',convertCurrency);
 
@@ -626,7 +664,7 @@ function initCashCounter() {
     container.innerHTML = '';
     notes.forEach(n => {
         const row = document.createElement('div'); row.className = 'info-row'; row.style.padding = '6px 10px';
-        row.innerHTML = `<div style="display:flex; align-items:center; gap:10px; flex:1;"><span style="font-weight:700; width:40px; color:var(--accent);">₹${n}</span><input type="number" id="note_${n}" placeholder="0" inputmode="numeric" oninput="doCashCalc()" style="height:35px; text-align:center; flex:1;"></div><div style="flex:1; text-align:right; font-weight:700; color:var(--text-sec);" id="sub_${n}">0</div>`;
+        row.innerHTML = `<div style="display:flex; align-items:center; gap:10px; flex:1;"><span style="700; width:40px; color:var(--accent);">₹${n}</span><input type="number" id="note_${n}" placeholder="0" inputmode="numeric" oninput="doCashCalc()" style="height:35px; text-align:center; flex:1;"></div><div style="flex:1; text-align:right; 700; color:var(--text-sec);" id="sub_${n}">0</div>`;
         container.appendChild(row);
     });
 }
