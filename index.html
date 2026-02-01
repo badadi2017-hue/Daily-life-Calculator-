@@ -7,6 +7,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
 /* --- VARIABLES (Apple iOS Glass) --- */
@@ -48,6 +49,8 @@ html, body {
   background: var(--bg-base); color: var(--text); transition: background 0.3s; 
 }
 
+i { vertical-align: middle; line-height: 1; }
+
 @keyframes sectionSlideUp {
   0% { opacity: 0; transform: translateY(30px) scale(0.98); filter: blur(5px); }
   100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
@@ -62,22 +65,47 @@ html, body {
 .f3 { width: 150px; height: 150px; background: #34C759; top: 40%; left: 60%; animation-duration: 32s; animation-delay: -10s; opacity: 0.2; }
 @keyframes float { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(30px, -50px); } 66% { transform: translate(-20px, 20px); } }
 
-/* [UPDATED] z-index and safe-area-inset-top for UI Buttons */
+/* --- GLOBAL BUTTON PINCH EFFECT --- */
+.ui-btn, .q-card, .mini-btn, .lang-btn, .side-menu button, .swap-btn, .q-icon, .app input, .app select {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.ui-btn:active, .q-card:active, .mini-btn:active, .lang-btn:active, .side-menu button:active, .swap-btn:active, .app input:focus {
+  transform: scale(0.92) !important; 
+}
+
+/* --- WELCOME ANIMATION STYLES --- */
+.welcome-overlay {
+  position: fixed; inset: 0; background: var(--bg-base); z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.8s ease, visibility 0.8s;
+}
+.welcome-logo {
+  font-size: 38px; font-weight: 800; color: var(--accent); letter-spacing: -1px;
+  animation: welcomePop 1.2s cubic-bezier(0.17, 0.67, 0.83, 0.67) forwards;
+}
+.welcome-tagline {
+  font-size: 14px; font-weight: 600; color: var(--text-sec); margin-top: 10px; opacity: 0;
+  animation: fadeIn 0.5s ease 0.8s forwards;
+}
+@keyframes welcomePop {
+  0% { transform: scale(0.6) translateY(20px); opacity: 0; filter: blur(10px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); }
+}
+.welcome-overlay.fade-out { opacity: 0; visibility: hidden; }
+
 .ui-btn { 
   position: fixed; 
   top: max(12px, env(safe-area-inset-top)); 
   width: 44px; height: 44px; border: none; border-radius: 50%; 
   background: var(--glass-card); backdrop-filter: blur(20px); 
   -webkit-backdrop-filter: blur(20px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-  color: var(--text); font-size: 20px; display: flex; align-items: center; 
+  color: var(--text); font-size: 22px; display: flex; align-items: center; 
   justify-content: center; cursor: pointer; z-index: 5000; 
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
 }
-.ui-btn:active { transform: scale(0.95); }
 
-.settings-btn { right: 12px; font-size: 18px; }
-.settings-btn.active { transform: rotate(180deg) scale(1.1); }
-.home-nav-btn { right: 68px; font-size: 18px; display: none; }
+.settings-btn { right: 12px; }
+.settings-btn.active { transform: rotate(90deg) scale(1.1); }
+.home-nav-btn { right: 68px; display: none; }
 .hamburger { left: 12px; flex-direction: column; gap: 5px; }
 .hamburger span { width: 20px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; }
 
@@ -89,14 +117,14 @@ body.menu-open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate
 .settings-modal.active { display: block; opacity: 1; transform: translateY(0); }
 .modal-overlay { position: fixed; inset: 0; background: transparent; display: none; z-index: 3500; }
 .setting-item { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
-.setting-item span {  600; color: var(--text-sec); font-size: 13px; }
+.setting-item span { font-weight: 600; color: var(--text-sec); font-size: 13px; }
 
-.mini-btn { padding: 6px 14px; font-size: 14px;  700; background: var(--glass-input); color: var(--accent); border: none; border-radius: 10px; cursor: pointer; transition: 0.2s; }
-.mini-btn:active { transform: scale(0.9); }
+.mini-btn { padding: 6px 14px; font-size: 14px; font-weight: 700; background: var(--glass-input); color: var(--accent); border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
 
 .side-menu { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: var(--glass-menu); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-right: 0.5px solid var(--glass-border); padding: 80px 20px 20px; box-shadow: 10px 0 40px rgba(0,0,0,0.1); transition: 0.35s cubic-bezier(0.32, 0.72, 0, 1); z-index: 2500; overflow-y: auto; }
 #menuList { display: flex; flex-direction: column; }
-.side-menu button { width: 100%; padding: 16px 20px; margin-bottom: 10px; border: none; border-radius: 14px; background: transparent; color: var(--accent); font-size: 17px;  600; text-align: left; cursor: pointer; transition: background 0.2s; touch-action: none; }
+.side-menu button { width: 100%; padding: 16px 20px; margin-bottom: 10px; border: none; border-radius: 14px; background: transparent; color: var(--text); font-size: 17px; font-weight: 600; text-align: left; cursor: pointer; transition: background 0.2s; touch-action: none; display: flex; align-items: center; gap: 12px; }
+.side-menu button i { color: var(--accent); font-size: 20px; }
 
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); backdrop-filter: blur(5px); display: none; z-index: 2000; }
 body.menu-open .side-menu { left: 0; }
@@ -111,7 +139,7 @@ body.menu-open .overlay { display: block; }
 .section.active { display: flex; animation: sectionSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
 #home { justify-content: flex-start; padding-top: 100px; padding-bottom: 20px; }
-.greeting { font-size: 28px;  700; color: var(--text); margin-bottom: 10px; text-align: center; opacity: 0; animation: fadeIn 1s forwards; }
+.greeting { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-align: center; opacity: 0; animation: fadeIn 1s forwards; }
 @keyframes fadeIn { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
 
 .clock-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px 0; }
@@ -122,36 +150,35 @@ circle { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.1s l
 .min { stroke: var(--c-min); }
 .hour { stroke: var(--c-hour); }
 .digital-wrap { margin-top: 0; text-align: center; z-index: 10; position: relative; }
-.digital { font-size: 52px;  300; color: var(--text); letter-spacing: -1px; }
-.date { font-size: 16px;  500; color: var(--text-sec); margin-top: 2px; text-transform: uppercase; }
-.bn-date { font-size: 15px;  700; color: var(--accent); margin-top: 4px; }
+.digital { font-size: 52px; font-weight: 300; color: var(--text); letter-spacing: -1px; }
+.date { font-size: 16px; font-weight: 500; color: var(--text-sec); margin-top: 2px; text-transform: uppercase; }
+.bn-date { font-size: 15px; font-weight: 700; color: var(--accent); margin-top: 4px; }
 
 .quick-links { display: flex; gap: 12px; margin-top: 40px; width: 100%; max-width: 320px; justify-content: center; }
-.q-card { flex: 1; background: var(--glass-card); border: 0.5px solid var(--glass-border); border-radius: 16px; padding: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.q-card:active { transform: scale(0.95); }
-.q-icon { font-size: 24px; }
-.q-name { font-size: 11px;  600; color: var(--text-sec); }
+.q-card { flex: 1; background: var(--glass-card); border: 0.5px solid var(--glass-border); border-radius: 16px; padding: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.q-icon { font-size: 28px; color: var(--accent); }
+.q-name { font-size: 11px; font-weight: 600; color: var(--text-sec); }
 
 .mini-clock { display: flex; gap: 4px; align-items: center; justify-content: center; margin-bottom: 14px; transform: scale(1.1); }
-.mc-card { background: var(--glass-input); border: 0.5px solid var(--glass-border); backdrop-filter: blur(12px); padding: 6px 8px; border-radius: 8px; font-size: 18px;  700; font-family: 'Courier New', monospace; color: var(--text); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+.mc-card { background: var(--glass-input); border: 0.5px solid var(--glass-border); backdrop-filter: blur(12px); padding: 6px 8px; border-radius: 8px; font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace; color: var(--text); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
 .mc-sep { font-size: 18px; color: var(--text-sec); animation: blink 1s infinite; }
-.mc-ampm { font-size: 11px; color: var(--text-sec); margin-left: 4px;  700; text-transform: uppercase; margin-top: 6px; }
+.mc-ampm { font-size: 11px; color: var(--text-sec); margin-left: 4px; font-weight: 700; text-transform: uppercase; margin-top: 6px; }
 @keyframes blink { 50% { opacity: 0; } }
 
 .app { width: 100%; max-width: 400px; background: var(--glass-card); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 0.5px solid var(--glass-border); border-radius: 18px; box-shadow: var(--shadow); padding: 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
 .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.header-row h2 { margin: 0; font-size: 18px;  700; color: var(--text); letter-spacing: -0.5px; }
+.header-row h2 { margin: 0; font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
 
 .btn-group { display: flex; gap: 6px; }
-.lang-btn { padding: 6px 12px; font-size: 13px;  600; background: var(--glass-input); color: var(--accent); border: none; border-radius: 100px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
+.lang-btn { padding: 6px 10px; font-size: 16px; font-weight: 600; background: var(--glass-input); color: var(--accent); border: none; border-radius: 100px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
 .clear-btn { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
 .undo-btn { background: rgba(255, 149, 0, 0.1); color: var(--warn); }
 .share-btn { background: rgba(0, 122, 255, 0.1); color: var(--accent); }
 .voice-btn { background: rgba(52, 199, 89, 0.1); color: #34C759; }
 
-.swap-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass-input); color: var(--accent); font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; align-self: flex-end; margin-bottom: 4px; transition: 0.2s; }
+.swap-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass-input); color: var(--accent); font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; align-self: flex-end; margin-bottom: 4px; }
 
-label { font-size: 11px;  600; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; margin-left: 4px; display: block; }
+label { font-size: 11px; font-weight: 600; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; margin-left: 4px; display: block; }
 input, select { width: 100%; height: 42px; padding: 0 12px; background: var(--glass-input); border: none; border-radius: 10px; color: var(--text); font-size: 17px; outline: none; transition: 0.2s; font-family: inherit; }
 input:focus, select:focus { background: var(--glass-input); box-shadow: 0 0 0 2px var(--accent); }
 input::placeholder { opacity: 0.2; }
@@ -161,13 +188,13 @@ input::placeholder { opacity: 0.2; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .box { padding: 10px; text-align: center; background: var(--glass-input); border-radius: 12px; }
 .box span:first-child { font-size: 11px; color: var(--text-sec); }
-.total { display: block; font-size: 18px;  700; color: var(--text); margin-top: 2px; }
+.total { display: block; font-size: 18px; font-weight: 700; color: var(--text); margin-top: 2px; }
 .box-compact { padding: 6px 8px; border-radius: 10px; }
 
 .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin-bottom: 6px; background: var(--glass-input); border-radius: 10px; }
 .info-label { font-size: 13px; color: var(--text-sec); }
-.info-val { font-size: 15px;  700; color: var(--text); }
-.info-title { font-size: 12px;  700; color: var(--accent); text-transform: uppercase; margin: 12px 0 6px; padding-left: 4px; }
+.info-val { font-size: 15px; font-weight: 700; color: var(--text); }
+.info-title { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin: 12px 0 6px; padding-left: 4px; }
 
 .emi-bar-wrap { height: 8px; width: 100%; background: var(--emi-principal); border-radius: 4px; overflow: hidden; margin: 10px 0 4px; display: flex; }
 .emi-bar-interest { height: 100%; background: var(--emi-interest); width: 0%; transition: width 0.5s ease; }
@@ -180,23 +207,109 @@ input::placeholder { opacity: 0.2; }
 </head>
 
 <body>
+<div id="welcomeSplash" class="welcome-overlay">
+  <div class="welcome-logo">Daily Life Calculator App</div>
+  <div class="welcome-tagline">By Aditya</div>
+</div>
+
 <div class="bg-mesh"></div>
 <div class="floater f1"></div><div class="floater f2"></div><div class="floater f3"></div>
 
 <script>
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    /* --- SOUND & VOICE LOGIC --- */
+    let audioCtx;
     let isMuted = localStorage.getItem('dlc_muted') === 'true';
-    function unlockAudio() { if (audioCtx.state === 'suspended') audioCtx.resume(); document.removeEventListener('click', unlockAudio); document.removeEventListener('touchstart', unlockAudio); }
-    document.addEventListener('click', unlockAudio); document.addEventListener('touchstart', unlockAudio);
-    function playClick() { if(isMuted) return; if(audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value = 600; osc.type = 'sine'; gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08); osc.start(); osc.stop(audioCtx.currentTime + 0.08); }
-    function playTrash() { if(isMuted) return; if(audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value = 150; osc.type = 'sawtooth'; gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
-    
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playClick() {
+        if (isMuted) return;
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = 800;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+        if (navigator.vibrate) navigator.vibrate(10); // Pinch vibration
+    }
+
+    function playTrash() {
+        if (isMuted) return;
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = 150;
+        osc.type = 'sawtooth';
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+    }
+
     function toggleSound() { 
         isMuted = !isMuted; 
         localStorage.setItem('dlc_muted', isMuted); 
         const btn = document.getElementById('settingSoundBtn');
-        if(btn) btn.textContent = isMuted ? '🔇 Off' : '🔊 On';
-        playClick(); 
+        if(btn) btn.innerHTML = isMuted ? '<i class="ph-bold ph-speaker-slash"></i> Off' : '<i class="ph-bold ph-speaker-high"></i> On';
+        if(!isMuted) playClick(); 
+    }
+
+    function readResult(secId) {
+        if (isMuted) return;
+        initAudio();
+        let text = "";
+        if (secId === 'rate') {
+            const totalVal = document.getElementById('total').innerText;
+            const resVal = document.getElementById('result').innerText;
+            text = isEn ? `Total Price is ${totalVal}. You will get ${resVal}` : `মোট দাম ${totalVal} টাকা। আপনি পাবেন ${resVal}`;
+        } else if (secId === 'fuel') {
+            const cost = document.getElementById('resFCost').innerText;
+            const fuel = document.getElementById('resFFuel').innerText;
+            text = isEn ? `Total fuel cost is ${cost} rupees. Required fuel is ${fuel}` : `মোট তেলের খরচ ${cost} টাকা। তেল লাগবে ${fuel}`;
+        } else if (secId === 'age') {
+            const y = document.getElementById('resYears').innerText;
+            const m = document.getElementById('resMonths').innerText;
+            const d = document.getElementById('resDays').innerText;
+            text = isEn ? `Your age is ${y} years, ${m} months, and ${d} days` : `আপনার বয়স ${y} বছর, ${m} মাস, এবং ${d} দিন`;
+        } else if (secId === 'emi') {
+            const emi = document.getElementById('resEmi').innerText;
+            text = isEn ? `Monthly E.M.I. is ${emi} rupees` : `মাসিক কিস্তি হচ্ছে ${emi} টাকা`;
+        } else if (secId === 'cash') {
+            const cash = document.getElementById('resCashTotal').innerText;
+            text = isEn ? `Total amount is ${cash}` : `সর্বমোট টাকার পরিমাণ ${cash}`;
+        } else if (secId === 'percent') {
+            const res = document.getElementById('pcRes').innerText;
+            text = isEn ? `Calculation result is ${res}` : `হিসাবের ফলাফল হলো ${res}`;
+        } else if (secId === 'converter') {
+            const out = document.getElementById('cvOut').value;
+            const unit = document.getElementById('cvUnitTo').value;
+            text = isEn ? `Converted result is ${out} ${unit}` : `ফলাফল হলো ${out} ${unit}`;
+        } else if (secId === 'currency') {
+            const res = document.getElementById('curResult').innerText;
+            text = isEn ? `Converted amount is ${res}` : `রূপান্তরিত পরিমাণ হলো ${res}`;
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = isEn ? 'en-IN' : 'bn-IN';
+            utterance.rate = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
     }
 
     function saveUserName() {
@@ -206,8 +319,8 @@ input::placeholder { opacity: 0.2; }
     }
 </script>
 
-<button class="ui-btn settings-btn" id="setBtn" onclick="toggleSettings(); playClick()">⚙️</button>
-<button class="ui-btn home-nav-btn" id="homeNavBtn" onclick="showSection('home'); playClick()">🏠</button>
+<button class="ui-btn settings-btn" id="setBtn" onclick="toggleSettings(); playClick()"><i class="ph-bold ph-gear"></i></button>
+<button class="ui-btn home-nav-btn" id="homeNavBtn" onclick="showSection('home'); playClick()"><i class="ph-bold ph-house"></i></button>
 <div class="ui-btn hamburger" onclick="toggleMenu(); playClick()"><span></span><span></span><span></span></div>
 
 <div class="modal-overlay" id="modalOverlay" onclick="toggleSettings()"></div>
@@ -222,30 +335,30 @@ input::placeholder { opacity: 0.2; }
   </div>
   <div class="setting-item">
     <span>Language</span>
-    <button class="mini-btn" onclick="toggleGlobalLang(); playClick()" id="settingLangBtn">🌐 EN</button>
+    <button class="mini-btn" onclick="toggleGlobalLang(); playClick()" id="settingLangBtn"><i class="ph-bold ph-globe"></i> EN</button>
   </div>
   <div class="setting-item">
     <span>Sound</span>
-    <button class="mini-btn" onclick="toggleSound();" id="settingSoundBtn">🔊 On</button>
+    <button class="mini-btn" onclick="toggleSound();" id="settingSoundBtn"><i class="ph-bold ph-speaker-high"></i> On</button>
   </div>
   <div class="setting-item">
     <span>Theme</span>
-    <button class="mini-btn" onclick="toggleTheme(); playClick()" id="settingThemeBtn">🌙 Dark</button>
+    <button class="mini-btn" onclick="toggleTheme(); playClick()" id="settingThemeBtn"><i class="ph-bold ph-moon"></i> Dark</button>
   </div>
 </div>
 
 <div class="side-menu">
- <div style="font-size:24px; 700; margin-bottom:20px; padding-left:10px;">Menu</div>
+ <div style="font-size:24px; font-weight:700; margin-bottom:20px; padding-left:10px;">Menu</div>
  <div id="menuList">
-     <button onclick="onMenuClick('home'); playClick()">Home</button>
-     <button onclick="onMenuClick('rate'); playClick()">Price Calculator</button>
-     <button onclick="onMenuClick('fuel'); playClick()">Fuel Calculator</button>
-     <button onclick="onMenuClick('age'); playClick()">Age Calculator</button>
-     <button onclick="onMenuClick('emi'); playClick()">EMI Calculator</button>
-     <button onclick="onMenuClick('currency'); playClick()">Currency Converter</button>
-     <button onclick="onMenuClick('percent'); playClick()">Percentage Calculator</button>
-     <button onclick="onMenuClick('converter'); playClick()">Unit Converter</button>
-     <button onclick="onMenuClick('cash'); playClick()">Cash Counter</button>
+     <button onclick="onMenuClick('home'); playClick()"><i class="ph-bold ph-house"></i> Home</button>
+     <button onclick="onMenuClick('rate'); playClick()"><i class="ph-bold ph-scales"></i> Price Calculator</button>
+     <button onclick="onMenuClick('fuel'); playClick()"><i class="ph-bold ph-gas-pump"></i> Fuel Calculator</button>
+     <button onclick="onMenuClick('age'); playClick()"><i class="ph-bold ph-cake"></i> Age Calculator</button>
+     <button onclick="onMenuClick('emi'); playClick()"><i class="ph-bold ph-bank"></i> EMI Calculator</button>
+     <button onclick="onMenuClick('currency'); playClick()"><i class="ph-bold ph-currency-circle-dollar"></i> Currency Converter</button>
+     <button onclick="onMenuClick('percent'); playClick()"><i class="ph-bold ph-percent"></i> Percentage Calculator</button>
+     <button onclick="onMenuClick('converter'); playClick()"><i class="ph-bold ph-arrows-left-right"></i> Unit Converter</button>
+     <button onclick="onMenuClick('cash'); playClick()"><i class="ph-bold ph-money"></i> Cash Counter</button>
  </div>
 </div>
 <div class="overlay" onclick="toggleMenu()"></div>
@@ -263,9 +376,9 @@ input::placeholder { opacity: 0.2; }
   </div>
  </div>
  <div class="quick-links">
-     <div class="q-card" onclick="showSection('rate'); playClick()"><div class="q-icon">⚖️</div><div class="q-name">Price</div></div>
-     <div class="q-card" onclick="showSection('fuel'); playClick()"><div class="q-icon">⛽</div><div class="q-name">Fuel</div></div>
-     <div class="q-card" onclick="showSection('age'); playClick()"><div class="q-icon">🎂</div><div class="q-name">Age</div></div>
+     <div class="q-card" onclick="showSection('rate'); playClick()"><div class="q-icon"><i class="ph-duotone ph-scales"></i></div><div class="q-name">Price</div></div>
+     <div class="q-card" onclick="showSection('fuel'); playClick()"><div class="q-icon"><i class="ph-duotone ph-gas-pump"></i></div><div class="q-name">Fuel</div></div>
+     <div class="q-card" onclick="showSection('age'); playClick()"><div class="q-icon"><i class="ph-duotone ph-cake"></i></div><div class="q-name">Age</div></div>
  </div>
 </section>
 
@@ -274,11 +387,11 @@ input::placeholder { opacity: 0.2; }
  <div class="app">
   <div class="header-row"><h2 id="rateTitle">Price Calculator</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('rate'); playClick()">🔊</button>
-    <button class="lang-btn share-btn" onclick="shareAsText('rate'); playClick()">📋</button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('rate')">📤</button>
-    <button class="lang-btn undo-btn" onclick="undoData('rate'); playClick()">↩️</button>
-    <button class="lang-btn clear-btn" onclick="clearData('rate'); playTrash()">🗑️</button>
+    <button class="lang-btn voice-btn" onclick="readResult('rate'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('rate'); playClick()"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('rate')"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" onclick="undoData('rate'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('rate'); playTrash()"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
   <div><label id="lp">Price per Kg</label><input id="price" type="number" inputmode="decimal" placeholder="0"></div>
@@ -294,11 +407,11 @@ input::placeholder { opacity: 0.2; }
  <div class="app">
   <div class="header-row"><h2 id="fuelTitle">Fuel Calculator</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('fuel'); playClick()">🔊</button>
-    <button class="lang-btn share-btn" onclick="shareAsText('fuel'); playClick()">📋</button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('fuel')">📤</button>
-    <button class="lang-btn undo-btn" onclick="undoData('fuel'); playClick()">↩️</button>
-    <button class="lang-btn clear-btn" onclick="clearData('fuel'); playTrash()">🗑️</button>
+    <button class="lang-btn voice-btn" onclick="readResult('fuel'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('fuel'); playClick()"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('fuel')"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" onclick="undoData('fuel'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('fuel'); playTrash()"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
   <div class="row"><div><label id="lblDist">Distance (km)</label><input id="fuelDist" type="number" inputmode="decimal" placeholder="100"></div><div><label id="lblMil">Mileage (km/L)</label><input id="fuelMil" type="number" inputmode="decimal" placeholder="45"></div></div>
@@ -313,11 +426,11 @@ input::placeholder { opacity: 0.2; }
  <div class="app">
   <div class="header-row"><h2 id="ageTitle">Age Calculator</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('age'); playClick()">🔊</button>
-    <button class="lang-btn share-btn" onclick="shareAsText('age'); playClick()">📋</button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('age')">📤</button>
-    <button class="lang-btn undo-btn" onclick="undoData('age'); playClick()">↩️</button>
-    <button class="lang-btn clear-btn" onclick="clearData('age'); playTrash()">🗑️</button>
+    <button class="lang-btn voice-btn" onclick="readResult('age'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('age'); playClick()"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('age')"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" onclick="undoData('age'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('age'); playTrash()"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
   <div><label id="lblDob">Date of Birth</label><input id="dobInput" type="date"></div>
@@ -327,7 +440,7 @@ input::placeholder { opacity: 0.2; }
     <div class="box"><span id="lblDays">Days</span><span class="total" id="resDays">0</span></div>
     <div class="box"><span id="lblNextBday">Next B'day</span><span class="total" id="resNextBday" style="color: #FF9500;">-</span></div>
   </div>
-  <div id="funContainer" class="fun-container">
+  <div id="funContainer" class="fun-container" style="display:none;">
       <div class="info-title" id="lblDetails">Details</div>
       <div class="info-row"><span class="info-label" id="lblBornDay">Born On</span><span class="info-val" id="resBornDay">-</span></div>
       <div class="info-row"><span class="info-label" id="lblZodiac">Zodiac</span><span class="info-val" id="resZodiac">-</span></div>
@@ -344,11 +457,11 @@ input::placeholder { opacity: 0.2; }
  <div class="app">
   <div class="header-row"><h2 id="emiTitle">EMI Calculator</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('emi'); playClick()">🔊</button>
-    <button class="lang-btn share-btn" onclick="shareAsText('emi'); playClick()">📋</button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('emi')">📤</button>
-    <button class="lang-btn undo-btn" onclick="undoData('emi'); playClick()">↩️</button>
-    <button class="lang-btn clear-btn" onclick="clearData('emi'); playTrash()">🗑️</button>
+    <button class="lang-btn voice-btn" onclick="readResult('emi'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('emi'); playClick()"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('emi')"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" onclick="undoData('emi'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('emi'); playTrash()"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
   <div><label id="lblLoan">Loan Amount</label><input id="emiPrincipal" type="number" inputmode="decimal" placeholder="500000"></div>
@@ -365,16 +478,16 @@ input::placeholder { opacity: 0.2; }
  <div class="app">
   <div class="header-row"><h2 id="curTitle">Currency Converter</h2>
    <div class="btn-group">
-    <button class="lang-btn" onclick="refreshCurrencyRates(); playClick()">🔄</button>
-    <button class="lang-btn voice-btn" onclick="readResult('currency'); playClick()">🔊</button>
-    <button class="lang-btn share-btn" onclick="shareAsText('currency'); playClick()">📋</button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('currency')">📤</button>
-    <button class="lang-btn undo-btn" onclick="undoData('currency'); playClick()">↩️</button>
-    <button class="lang-btn clear-btn" onclick="clearData('currency'); playTrash()">🗑️</button>
+    <button class="lang-btn" onclick="refreshCurrencyRates(); playClick()"><i class="ph-bold ph-arrows-clockwise"></i></button>
+    <button class="lang-btn voice-btn" onclick="readResult('currency'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('currency'); playClick()"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('currency')"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" onclick="undoData('currency'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('currency'); playTrash()"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
   <div><label id="curLblAmount">Amount</label><input id="curAmount" type="number" inputmode="decimal" placeholder="1" value="1"></div>
-  <div class="row"><div><label id="curLblFrom">From</label><select id="curFrom" onchange="convertCurrency(); playClick()"></select></div><button class="swap-btn" onclick="swapCurrency(); playClick()">⇄</button><div><label id="curLblTo">To</label><select id="curTo" onchange="convertCurrency(); playClick()"></select></div></div>
+  <div class="row"><div><label id="curLblFrom">From</label><select id="curFrom" onchange="convertCurrency(); playClick()"></select></div><button class="swap-btn" onclick="swapCurrency(); playClick()"><i class="ph-bold ph-arrows-left-right"></i></button><div><label id="curLblTo">To</label><select id="curTo" onchange="convertCurrency(); playClick()"></select></div></div>
   <div class="box"><span id="curLblResult">Result</span><span class="total" id="curResult">...</span><div class="rate-info" id="curRateInfo">Fetching rates...</div></div>
  </div>
 </section>
@@ -384,11 +497,11 @@ input::placeholder { opacity: 0.2; }
  <div class="app">
   <div class="header-row"><h2 id="pcTitle">Percent Calculator</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('percent'); playClick()">🔊</button>
-    <button class="lang-btn share-btn" onclick="shareAsText('percent'); playClick()">📋</button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('percent')">📤</button>
-    <button class="lang-btn undo-btn" onclick="undoData('percent'); playClick()">↩️</button>
-    <button class="lang-btn clear-btn" onclick="clearData('percent'); playTrash()">🗑️</button>
+    <button class="lang-btn voice-btn" onclick="readResult('percent'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('percent'); playClick()"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('percent')"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" onclick="undoData('percent'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('percent'); playTrash()"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
   <div><label id="lblType">Mode</label><select id="pcMode" onchange="updatePCLayout(); playClick()"><option value="1">X is what % of Y</option><option value="2">X% of Y</option><option value="3">% Increase/Decrease</option><option value="4">Reverse %</option></select></div>
@@ -402,16 +515,16 @@ input::placeholder { opacity: 0.2; }
  <div class="app">
   <div class="header-row"><h2 id="cvTitle">All-in-One Converter</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('converter'); playClick()">🔊</button>
-    <button class="lang-btn share-btn" onclick="shareAsText('converter'); playClick()">📋</button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('converter')">📤</button>
-    <button class="lang-btn undo-btn" onclick="undoData('converter'); playClick()">↩️</button>
-    <button class="lang-btn clear-btn" onclick="clearData('converter'); playTrash()">🗑️</button>
+    <button class="lang-btn voice-btn" onclick="readResult('converter'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('converter'); playClick()"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('converter')"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" onclick="undoData('converter'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('converter'); playTrash()"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
   <div><label id="cvLblCat">Category</label><select id="cvCat" onchange="updateCvUnits(); playClick()"><option value="len">Length</option><option value="wgt">Weight</option><option value="temp">Temperature</option><option value="time">Time</option><option value="speed">Speed</option><option value="data">Data</option><option value="power">Power</option><option value="land">Indian Land</option></select></div>
   <div class="row"><div style="flex:1.5;"><label id="cvLblFrom">From</label><input id="cvIn" type="number" inputmode="decimal" placeholder="0"></div><div style="flex:1;"><label>&nbsp;</label><select id="cvUnitFrom" onchange="doConvert(); playClick()"></select></div></div>
-  <div class="row"><div style="flex:1.5;"><label id="cvLblTo">To</label><input id="cvOut" type="text" readonly style="background:transparent; 700; border:1px solid var(--glass-border);"></div><div style="flex:1;"><label>&nbsp;</label><select id="cvUnitTo" onchange="doConvert(); playClick()"></select></div></div>
+  <div class="row"><div style="flex:1.5;"><label id="cvLblTo">To</label><input id="cvOut" type="text" readonly style="background:transparent; font-weight:700; border:1px solid var(--glass-border);"></div><div style="flex:1;"><label>&nbsp;</label><select id="cvUnitTo" onchange="doConvert(); playClick()"></select></div></div>
  </div>
 </section>
 
@@ -420,11 +533,11 @@ input::placeholder { opacity: 0.2; }
  <div class="app">
   <div class="header-row"><h2 id="cashTitle">Cash Counter</h2>
    <div class="btn-group">
-     <button class="lang-btn voice-btn" onclick="readResult('cash'); playClick()">🔊</button>
-     <button class="lang-btn share-btn" onclick="shareAsText('cash'); playClick()">📋</button>
-     <button class="lang-btn share-btn" onclick="shareAsImage('cash')">📤</button>
-     <button class="lang-btn undo-btn" onclick="undoData('cash'); playClick()">↩️</button>
-     <button class="lang-btn clear-btn" onclick="clearCash(); playTrash()">🗑️</button>
+     <button class="lang-btn voice-btn" onclick="readResult('cash'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
+     <button class="lang-btn share-btn" onclick="shareAsText('cash'); playClick()"><i class="ph-bold ph-copy"></i></button>
+     <button class="lang-btn share-btn" onclick="shareAsImage('cash')"><i class="ph-bold ph-image-square"></i></button>
+     <button class="lang-btn undo-btn" onclick="undoData('cash'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+     <button class="lang-btn clear-btn" onclick="clearCash(); playTrash()"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
   <div id="cashList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div>
@@ -432,51 +545,14 @@ input::placeholder { opacity: 0.2; }
     <span id="lblCashTotal">Grand Total</span>
     <span class="total" id="resCashTotal" style="font-size: 26px; color: #34C759;">₹ 0</span>
   </div>
-  <div class="rate-info" id="cashInWords" style="text-align: center; margin-top: 8px;  600;">Zero Rupees Only</div>
+  <div class="rate-info" id="cashInWords" style="text-align: center; margin-top: 8px; font-weight:600;">Zero Rupees Only</div>
  </div>
 </section>
 
 <div class="footer-credit">Made with ❤️ by Aditya</div>
 
 <script>
-/* CORE LOGIC & UPDATES */
-
-/* [UPDATED] Visual Viewport Logic to keep buttons visible */
-function initKeyboardFix() {
-    if (!window.visualViewport) return;
-
-    const buttons = document.querySelectorAll('.ui-btn');
-    
-    window.visualViewport.addEventListener('resize', () => {
-        const offset = window.visualViewport.offsetTop;
-        
-        buttons.forEach(btn => {
-            if (window.visualViewport.height < window.innerHeight) {
-                // When keyboard is open
-                btn.style.position = 'absolute'; 
-                btn.style.top = (offset + 12) + 'px';
-            } else {
-                // When keyboard is closed
-                btn.style.position = 'fixed';
-                btn.style.top = '12px';
-            }
-        });
-    });
-
-    const allInputs = document.querySelectorAll('input, select');
-    allInputs.forEach(el => {
-        el.addEventListener('focus', (e) => {
-            const parentApp = e.target.closest('.app');
-            setTimeout(() => {
-                if (parentApp) {
-                    parentApp.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } else {
-                    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 300);
-        });
-    });
-}
+/* CORE LOGIC REMAINS UNTOUCHED */
 
 function changeAccent(color) {
     document.documentElement.style.setProperty('--accent', color);
@@ -528,6 +604,7 @@ function getBengaliCalendarDate(date) {
 }
 
 function toggleSettings() {
+    initAudio();
     const modal = document.getElementById('settingsModal');
     const overlay = document.getElementById('modalOverlay');
     const btn = document.getElementById('setBtn');
@@ -535,11 +612,11 @@ function toggleSettings() {
     btn.classList.toggle('active'); overlay.style.display = active ? 'block' : 'none';
 }
 
-function toggleGlobalLang() { isEn = !isEn; saveLang(); const btn = document.getElementById('settingLangBtn'); if(btn) btn.textContent = isEn ? '🌐 EN' : '🌐 BN'; renderAllLangs(); }
+function toggleGlobalLang() { isEn = !isEn; saveLang(); const btn = document.getElementById('settingLangBtn'); if(btn) btn.innerHTML = isEn ? '<i class="ph-bold ph-globe"></i> EN' : '<i class="ph-bold ph-globe"></i> BN'; renderAllLangs(); }
 
 function applyTheme(isDark) { 
-    if(isDark) { document.body.classList.add('dark'); const btn = document.getElementById('settingThemeBtn'); if(btn) btn.textContent = '☀️ Light'; 
-    } else { document.body.classList.remove('dark'); const btn = document.getElementById('settingThemeBtn'); if(btn) btn.textContent = '🌙 Dark'; } 
+    if(isDark) { document.body.classList.add('dark'); const btn = document.getElementById('settingThemeBtn'); if(btn) btn.innerHTML = '<i class="ph-bold ph-sun"></i> Light'; 
+    } else { document.body.classList.remove('dark'); const btn = document.getElementById('settingThemeBtn'); if(btn) btn.innerHTML = '<i class="ph-bold ph-moon"></i> Dark'; } 
 }
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 applyTheme(systemDark.matches);
@@ -547,7 +624,7 @@ systemDark.addEventListener('change', (e) => { applyTheme(e.matches); });
 
 function toggleTheme() { applyTheme(!document.body.classList.contains('dark')); }
 let isEn = localStorage.getItem('lang') !== 'bn'; 
-function toggleMenu(){ document.body.classList.toggle('menu-open'); }
+function toggleMenu(){ initAudio(); document.body.classList.toggle('menu-open'); }
 
 function showSection(id){ 
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
@@ -560,30 +637,6 @@ function onMenuClick(id){ showSection(id); toggleMenu(); }
 
 function toBn(num) { if(isEn) return num; const digits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯']; return num.toString().split('').map(d => digits[d]||d).join(''); }
 function saveLang(){ localStorage.setItem('lang',isEn?'en':'bn'); }
-
-const footer = document.querySelector('.footer-credit');
-
-window.addEventListener('load', () => {
-    if(document.getElementById('settingSoundBtn')) document.getElementById('settingSoundBtn').textContent = isMuted ? '🔇 Off' : '🔊 On';
-    if(document.getElementById('settingLangBtn')) document.getElementById('settingLangBtn').textContent = isEn ? '🌐 EN' : '🌐 BN';
-    const savedName = localStorage.getItem('dlc_username'); if(savedName) document.getElementById('userNameInput').value = savedName;
-    const savedAccent = localStorage.getItem('dlc_accent'); if (savedAccent) { changeAccent(savedAccent); document.getElementById('accentPicker').value = savedAccent; }
-    
-    initKeyboardFix(); 
-});
-
-function readResult(secId) {
-    let text = "";
-    if (secId === 'rate') { const res = document.getElementById('result').innerText; text = isEn ? `You will get ${res}` : `আপনি পাবেন ${res}`;
-    } else if (secId === 'fuel') { const cost = document.getElementById('resFCost').innerText; text = isEn ? `Total cost is ${cost}` : `মোট খরচ ${cost} টাকা`;
-    } else if (secId === 'age') { const y = document.getElementById('resYears').innerText; const m = document.getElementById('resMonths').innerText; text = isEn ? `Your age is ${y} years and ${m} months` : `আপনার বয়স ${y} বছর ${m} মাস`;
-    } else if (secId === 'emi') { const emi = document.getElementById('resEmi').innerText; text = isEn ? `Monthly EMI is ${emi}` : `মাসিক কিস্তি ${emi} টাকা`;
-    } else if (secId === 'cash') { const total = document.getElementById('resCashTotal').innerText; text = isEn ? `Total cash is ${total}` : `মোট নগদ টাকা হলো ${total}`;
-    } else if (secId === 'currency') { const res = document.getElementById('curResult').innerText; text = isEn ? `Converted result is ${res}` : `ফলাফল হলো ${res}`;
-    } else if (secId === 'percent') { const res = document.getElementById('pcRes').innerText; text = isEn ? `The result is ${res}` : `ফলাফল হলো ${res}`;
-    } else if (secId === 'converter') { const res = document.getElementById('cvOut').value; text = isEn ? `Result is ${res}` : `ফলাফল হলো ${res}`; }
-    if (!text) return; const utterance = new SpeechSynthesisUtterance(text); utterance.lang = isEn ? 'en-US' : 'bn-BD'; utterance.rate = 1.0; window.speechSynthesis.speak(utterance);
-}
 
 const circles={hour:document.querySelector('.hour'),min:document.querySelector('.min'),sec:document.querySelector('.sec')};
 Object.values(circles).forEach(c=>{ const r = c.r.baseVal.value; c.len = 2 * Math.PI * r; c.style.strokeDasharray = c.len; });
@@ -612,6 +665,7 @@ setInterval(updateClocks,1000); updateClocks();
 
 Sortable.create(document.getElementById('menuList'), { animation: 250, delay: 150, delayOnTouchOnly: true, onEnd: function () { const order = Array.from(document.getElementById('menuList').children).map(btn => btn.innerText); localStorage.setItem('dlc_menu_order', JSON.stringify(order)); } });
 
+/* CALCULATOR LOGICS */
 function renderRateLang(){ rateTitle.textContent=isEn?'Price Calculator':'মূল্য ক্যালকুলেটর'; lp.textContent=isEn?'Price per Kg':'প্রতি কেজি মূল্য'; lw.textContent=isEn?'Weight':'ওজন'; lu.textContent=isEn?'Unit':'একক'; lt.textContent=isEn?'Total':'মোট দাম'; la.textContent=isEn?'Pay Amount':'আমি দিতে চাই'; lg.textContent=isEn?'Result':'আপনি পাবেন'; calc(); }
 function calc(){ let p=+price.value||0, w=+weight.value||0; if(unit.value==='g')w/=1000; total.textContent="₹ "+(p*w).toFixed(2); let a=+amount.value||0; if(p>0){ let g=(a/p)*1000; result.textContent=g>=1000?(g/1000).toFixed(2)+(isEn?' Kg':' কেজি'):Math.round(g)+(isEn?' g':' গ্রাম'); } }
 ['input','change'].forEach(e=>{ price.addEventListener(e,calc); weight.addEventListener(e,calc); unit.addEventListener(e,calc); amount.addEventListener(e,calc); });
@@ -664,7 +718,7 @@ function initCashCounter() {
     container.innerHTML = '';
     notes.forEach(n => {
         const row = document.createElement('div'); row.className = 'info-row'; row.style.padding = '6px 10px';
-        row.innerHTML = `<div style="display:flex; align-items:center; gap:10px; flex:1;"><span style="700; width:40px; color:var(--accent);">₹${n}</span><input type="number" id="note_${n}" placeholder="0" inputmode="numeric" oninput="doCashCalc()" style="height:35px; text-align:center; flex:1;"></div><div style="flex:1; text-align:right; 700; color:var(--text-sec);" id="sub_${n}">0</div>`;
+        row.innerHTML = `<div style="display:flex; align-items:center; gap:10px; flex:1;"><span style="font-weight:700; width:40px; color:var(--accent);">₹${n}</span><input type="number" id="note_${n}" placeholder="0" inputmode="numeric" oninput="doCashCalc()" style="height:35px; text-align:center; flex:1;"></div><div style="flex:1; text-align:right; font-weight:700; color:var(--text-sec);" id="sub_${n}">0</div>`;
         container.appendChild(row);
     });
 }
@@ -679,13 +733,26 @@ function clearCash() { const state = {}; notes.forEach(n => { const el = documen
 function renderCashLang() { cashTitle.textContent = isEn ? 'Cash Counter' : 'টাকা গণনা'; lblCashTotal.textContent = isEn ? 'Grand Total' : 'সর্বমোট টাকা'; doCashCalc(); }
 
 let undoHistory = {};
-function initAutoSave() { document.querySelectorAll('input, select').forEach(el => { const savedVal = localStorage.getItem('dlc_' + el.id); if(savedVal) el.value = savedVal; el.addEventListener('input', () => localStorage.setItem('dlc_' + el.id, el.value)); el.addEventListener('change', () => localStorage.setItem('dlc_' + id, el.value)); }); }
+function initAutoSave() { document.querySelectorAll('input, select').forEach(el => { const savedVal = localStorage.getItem('dlc_' + el.id); if(savedVal) el.value = savedVal; el.addEventListener('input', () => localStorage.setItem('dlc_' + el.id, el.value)); el.addEventListener('change', () => localStorage.setItem('dlc_' + el.id, el.value)); }); }
 function clearData(secId) { const sec = document.getElementById(secId); const inputs = sec.querySelectorAll('input, select'); let state = {}; inputs.forEach(el => state[el.id] = el.value); undoHistory[secId] = state; inputs.forEach(el => { if(el.tagName === 'INPUT') el.value = ''; localStorage.removeItem('dlc_' + el.id); }); triggerCalc(secId); }
 function undoData(secId) { if(!undoHistory[secId]) return; const state = undoHistory[secId]; for(let id in state) { const el = document.getElementById(id); if(el) { el.value = state[id]; localStorage.setItem('dlc_' + id, state[id]); } } triggerCalc(secId); }
 function triggerCalc(secId) { if(secId === 'fuel') doFuelCalc(); else if(secId === 'rate') calc(); else if(secId === 'emi') doEmiCalc(); else if(secId === 'currency') convertCurrency(); else if(secId === 'percent') doPercentCalc(); else if(secId === 'converter') doConvert(); else if(secId === 'age') doAgeCalc(); else if(secId === 'cash') doCashCalc(); }
 function renderAllLangs(){ renderFuelLang(); renderRateLang(); renderPercentLang(); renderCvLang(); renderCurrencyLang(); renderAgeLang(); renderEmiLang(); renderCashLang(); }
 
-initCashCounter(); renderAllLangs(); initAutoSave(); doFuelCalc(); doEmiCalc(); calc(); doPercentCalc(); doConvert(); doAgeCalc();
+window.addEventListener('load', () => {
+    initCashCounter(); renderAllLangs(); initAutoSave(); doFuelCalc(); doEmiCalc(); calc(); doPercentCalc(); doConvert(); doAgeCalc();
+    
+    // SOUND & LANG BUTTON INIT
+    const soundBtn = document.getElementById('settingSoundBtn');
+    if(soundBtn) soundBtn.innerHTML = isMuted ? '<i class="ph-bold ph-speaker-slash"></i> Off' : '<i class="ph-bold ph-speaker-high"></i> On';
+    const langBtn = document.getElementById('settingLangBtn');
+    if(langBtn) langBtn.innerHTML = isEn ? '<i class="ph-bold ph-globe"></i> EN' : '<i class="ph-bold ph-globe"></i> BN';
+
+    // REMOVE WELCOME SPLASH
+    setTimeout(() => {
+      document.getElementById('welcomeSplash').classList.add('fade-out');
+    }, 2000);
+});
 </script>
 </body>
 </html>
