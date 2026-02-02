@@ -65,6 +65,24 @@ i { vertical-align: middle; line-height: 1; }
 .f3 { width: 150px; height: 150px; background: #34C759; top: 40%; left: 60%; animation-duration: 32s; animation-delay: -10s; opacity: 0.2; }
 @keyframes float { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(30px, -50px); } 66% { transform: translate(-20px, 20px); } }
 
+/* --- VERSION TAG STYLE --- */
+.menu-version-top {
+  position: absolute;
+  top: 22px;
+  right: 20px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--glass-input);
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 0.5px solid var(--glass-border);
+  backdrop-filter: blur(5px);
+  z-index: 10;
+}
+
 /* --- GLOBAL BUTTON PINCH EFFECT --- */
 .ui-btn, .q-card, .mini-btn, .lang-btn, .side-menu button, .swap-btn, .q-icon, .app input, .app select {
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -348,6 +366,8 @@ input::placeholder { opacity: 0.2; }
 </div>
 
 <div class="side-menu">
+ <div class="menu-version-top">v1.2.1</div> 
+ 
  <div style="font-size:24px; font-weight:700; margin-bottom:20px; padding-left:10px;">Menu</div>
  <div id="menuList">
      <button onclick="onMenuClick('home'); playClick()"><i class="ph-bold ph-house"></i> Home</button>
@@ -365,6 +385,7 @@ input::placeholder { opacity: 0.2; }
 
 <section id="home" class="section active">
  <div class="greeting" id="greeting">Hello</div>
+ 
  <div class="clock-wrap">
   <div class="ring-clock">
    <svg viewBox="0 0 280 280"><circle class="hour" cx="140" cy="140" r="110" stroke-width="12"/><circle class="min" cx="140" cy="140" r="95" stroke-width="12"/><circle class="sec" cx="140" cy="140" r="80" stroke-width="12"/></svg>
@@ -688,16 +709,65 @@ let exchangeRates={}, lastFetch=0;
 function renderCurrencyLang(){ curTitle.textContent=isEn?'Currency Converter':'কারেন্সি কনভার্টার'; curLblAmount.textContent=isEn?'Amount':'পরিমাণ'; curLblFrom.textContent=isEn?'From':'থেকে'; curLblTo.textContent=isEn?'To':'তে'; curLblResult.textContent=isEn?'Result':'ফলাফল'; populateCurrencySelects(true); }
 function populateCurrencySelects(k=false){ const f=curFrom.value, t=curTo.value; curFrom.innerHTML=""; curTo.innerHTML=""; currencyList.forEach(c=>{ const n=isEn?`${c.code}-${c.en}`:`${c.code}-${c.bn}`; curFrom.add(new Option(n,c.code)); curTo.add(new Option(n,c.code)); }); if(k&&f&&t){ curFrom.value=f; curTo.value=t; } else { curFrom.value="USD"; curTo.value="BDT"; } convertCurrency(); }
 
-async function refreshCurrencyRates() { 
+async function convertCurrency() {
+    const f = curFrom.value, t = curTo.value, a = parseFloat(curAmount.value);
     const info = document.getElementById('curRateInfo');
-    info.textContent = isEn ? "Updating rates..." : "রেট আপডেট হচ্ছে...";
-    lastFetch = 0; 
-    await convertCurrency(); 
-    info.textContent = isEn ? "Rates updated successfully!" : "রেট আপডেট হয়েছে!";
-    setTimeout(() => { if(lastFetch !== 0) convertCurrency(); }, 2000); 
+
+    if (isNaN(a) || !f || !t) {
+        curResult.textContent = "-";
+        return;
+    }
+
+    // ইন্টারনেট চেক
+    if (!navigator.onLine) {
+        info.textContent = isEn ? "⚠️ Offline: Check Internet Connection" : "⚠️ অফলাইন: ইন্টারনেট কানেকশন চেক করুন";
+        info.style.color = "var(--danger)";
+        return;
+    }
+
+    const n = Date.now();
+    // ১ ঘণ্টা (3600000 ms) পর পর রেট আপডেট হবে
+    if (Object.keys(exchangeRates).length === 0 || (n - lastFetch > 3600000)) {
+        try {
+            info.textContent = isEn ? "Fetching latest rates..." : "লেটেস্ট রেট আনা হচ্ছে...";
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); 
+
+            const r = await fetch('https://api.exchangerate-api.com/v4/latest/USD', { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!r.ok) throw new Error("API Limit reached");
+
+            const d = await r.json();
+            exchangeRates = d.rates;
+            lastFetch = n;
+            
+            const timeStr = new Date(lastFetch).toLocaleTimeString();
+            info.textContent = isEn ? `Last updated: ${timeStr}` : `শেষ আপডেট: ${timeStr}`;
+            info.style.color = "var(--text-sec)";
+            
+        } catch (e) {
+            console.error("Currency Fetch Error:", e);
+            info.textContent = isEn ? "❌ Failed to load rates. Try again." : "❌ রেট লোড করতে ব্যর্থ। আবার চেষ্টা করুন।";
+            info.style.color = "var(--danger)";
+            curResult.textContent = "Err";
+            return;
+        }
+    }
+
+    const rf = exchangeRates[f], rt = exchangeRates[t];
+    if (rf && rt) {
+        const converted = ((a / rf) * rt).toFixed(2);
+        curResult.textContent = `${t} ${converted}`;
+    }
 }
 
-async function convertCurrency(){ const f=curFrom.value, t=curTo.value, a=parseFloat(curAmount.value); if(isNaN(a)||!f||!t){ curResult.textContent="-"; return; } const n=Date.now(); if(Object.keys(exchangeRates).length===0||(n-lastFetch>3600000)){ try{ const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD'); const d=await r.json(); exchangeRates=d.rates; lastFetch=n; const timeStr = new Date(lastFetch).toLocaleTimeString(); document.getElementById('curRateInfo').textContent = isEn ? `Last updated: ${timeStr}` : `শেষ আপডেট: ${timeStr}`; }catch(e){ return; } } const rf=exchangeRates[f], rt=exchangeRates[t]; if(rf&&rt){ curResult.textContent=`${t} ${((a/rf)*rt).toFixed(2)}`; } }
+async function refreshCurrencyRates() {
+    playClick();
+    lastFetch = 0; 
+    await convertCurrency();
+}
+
 function swapCurrency(){ const t=curFrom.value; curFrom.value=curTo.value; curTo.value=t; convertCurrency(); }
 curAmount.addEventListener('input',convertCurrency);
 
@@ -741,17 +811,11 @@ function renderAllLangs(){ renderFuelLang(); renderRateLang(); renderPercentLang
 
 window.addEventListener('load', () => {
     initCashCounter(); renderAllLangs(); initAutoSave(); doFuelCalc(); doEmiCalc(); calc(); doPercentCalc(); doConvert(); doAgeCalc();
-    
-    // SOUND & LANG BUTTON INIT
     const soundBtn = document.getElementById('settingSoundBtn');
     if(soundBtn) soundBtn.innerHTML = isMuted ? '<i class="ph-bold ph-speaker-slash"></i> Off' : '<i class="ph-bold ph-speaker-high"></i> On';
     const langBtn = document.getElementById('settingLangBtn');
     if(langBtn) langBtn.innerHTML = isEn ? '<i class="ph-bold ph-globe"></i> EN' : '<i class="ph-bold ph-globe"></i> BN';
-
-    // REMOVE WELCOME SPLASH
-    setTimeout(() => {
-      document.getElementById('welcomeSplash').classList.add('fade-out');
-    }, 2000);
+    setTimeout(() => { document.getElementById('welcomeSplash').classList.add('fade-out'); }, 2000);
 });
 </script>
 </body>
