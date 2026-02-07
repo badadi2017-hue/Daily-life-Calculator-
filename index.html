@@ -9,6 +9,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <style>
 /* --- VARIABLES (Apple iOS Glass) --- */
@@ -28,17 +30,21 @@
   --warn: #FF9500;
   --c-hour: #007AFF; --c-min: #34C759; --c-sec: #FF3B30;
   --emi-principal: #34C759; --emi-interest: #FF3B30;
+  --focus-ring: 0 0 0 3px rgba(0, 122, 255, 0.4);
 }
 
-body.dark {
-  --orb1: #0A84FF; --orb2: #BF5AF2; --bg-base: #000000;
-  --text: #FFFFFF; --text-sec: #EBEBF599;
-  --glass-card: rgba(30, 30, 30, 0.60); 
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-input: rgba(118, 118, 128, 0.24);
-  --glass-menu: rgba(25, 25, 25, 0.94);
-  --danger: #FF453A; --warn: #FF9F0A;
-  --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+@media (prefers-color-scheme: dark) {
+  :root {
+    --orb1: #0A84FF; --orb2: #BF5AF2; --bg-base: #000000;
+    --text: #FFFFFF; --text-sec: #EBEBF599;
+    --glass-card: rgba(30, 30, 30, 0.60); 
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-input: rgba(118, 118, 128, 0.24);
+    --glass-menu: rgba(25, 25, 25, 0.94);
+    --danger: #FF453A; --warn: #FF9F0A;
+    --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    --focus-ring: 0 0 0 3px rgba(10, 132, 255, 0.5);
+  }
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -48,58 +54,68 @@ html, body {
   overflow: hidden; position: fixed; 
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
   background: var(--bg-base); color: var(--text); transition: background 0.3s; 
+  -webkit-user-select: none; user-select: none;
 }
 
-i { vertical-align: middle; line-height: 1; }
+i { vertical-align: middle; line-height: 1; pointer-events: none; }
 
 @keyframes sectionSlideUp {
   0% { opacity: 0; transform: translateY(30px) scale(0.98); filter: blur(5px); }
   100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 
-.bg-mesh { position: absolute; width: 100%; height: 100%; z-index: -2; background: radial-gradient(circle at 0% 0%, var(--orb1), transparent 60%), radial-gradient(circle at 100% 100%, var(--orb2), transparent 60%); opacity: 0.25; filter: blur(80px); animation: pulse 10s ease-in-out infinite alternate; }
+.bg-mesh { position: absolute; width: 100%; height: 100%; z-index: -2; background: radial-gradient(circle at 0% 0%, var(--orb1), transparent 60%), radial-gradient(circle at 100% 100%, var(--orb2), transparent 60%); opacity: 0.25; filter: blur(80px); animation: pulse 10s ease-in-out infinite alternate; pointer-events: none; }
 @keyframes pulse { 0%{opacity:0.25;} 100%{opacity:0.4;} }
 
-.floater { position: absolute; border-radius: 50%; filter: blur(40px); z-index: -1; opacity: 0.4; animation: float 20s infinite ease-in-out; }
+.floater { position: absolute; border-radius: 50%; filter: blur(40px); z-index: -1; opacity: 0.4; animation: float 20s infinite ease-in-out; pointer-events: none; }
 .f1 { width: 200px; height: 200px; background: var(--orb1); top: 10%; left: 10%; animation-duration: 25s; }
 .f2 { width: 250px; height: 250px; background: var(--orb2); bottom: 10%; right: 10%; animation-duration: 28s; animation-delay: -5s; }
 .f3 { width: 150px; height: 150px; background: #34C759; top: 40%; left: 60%; animation-duration: 32s; animation-delay: -10s; opacity: 0.2; }
 @keyframes float { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(30px, -50px); } 66% { transform: translate(-20px, 20px); } }
 
-/* --- VERSION TAG STYLE --- */
+.astro-info { margin-bottom: 4px; text-align: center; background: var(--glass-input); padding: 4px 12px; border-radius: 20px; border: 0.5px solid var(--glass-border); backdrop-filter: blur(10px); }
+.astro-label { font-size: 12px; font-weight: 800; color: var(--accent); margin-bottom: 0px; }
+.astro-vals { font-size: 11px; font-weight: 600; color: var(--text-sec); display: flex; gap: 8px; justify-content: center; }
+
+.moon-wrap { margin-top: 4px; display: flex; flex-direction: column; align-items: center; gap: 0px; z-index: 5; pointer-events: none; }
+#moonIcon { font-size: 24px; filter: drop-shadow(0 0 12px var(--accent)); transition: 0.3s; }
+#moonName { font-size: 13px; font-weight: 800; color: var(--text); text-shadow: 0 0 8px var(--glass-border); letter-spacing: 0.5px; }
+
 .menu-version-top {
-  position: absolute;
-  top: 22px;
-  right: 20px;
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--accent);
-  background: var(--glass-input);
-  padding: 4px 10px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border: 0.5px solid var(--glass-border);
-  backdrop-filter: blur(5px);
-  z-index: 10;
+  position: absolute; top: 22px; right: 20px; font-size: 10px; font-weight: 800; color: var(--accent);
+  background: var(--glass-input); padding: 4px 10px; border-radius: 20px; text-transform: uppercase;
+  letter-spacing: 1px; border: 0.5px solid var(--glass-border); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 10;
 }
 
-/* --- GLOBAL BUTTON PINCH EFFECT --- */
-.ui-btn, .q-card, .mini-btn, .lang-btn, .side-menu button, .swap-btn, .q-icon, .app input, .app select {
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-.ui-btn:active, .q-card:active, .mini-btn:active, .lang-btn:active, .side-menu button:active, .swap-btn:active, .app input:focus {
-  transform: scale(0.92) !important; 
+.ui-btn, .q-card, .mini-btn, .lang-btn, .side-menu button, .swap-btn, .swatch {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s, box-shadow 0.2s;
+  touch-action: manipulation;
+  cursor: pointer;
+  outline: none;
+  will-change: transform;
 }
 
-/* --- WELCOME ANIMATION STYLES --- */
+.ui-btn:active, .q-card:active, .mini-btn:active, .lang-btn:active, .side-menu button:active, .swap-btn:active, .swatch:active {
+  transform: scale(0.92); 
+}
+
+@media (hover: hover) {
+  .ui-btn:hover, .mini-btn:hover, .lang-btn:hover, .swap-btn:hover { background: var(--glass-border); }
+  .side-menu button:hover { background: var(--glass-input); }
+  .q-card:hover { transform: translateY(-2px); background: var(--glass-border); }
+}
+
+.ui-btn:focus-visible, .mini-btn:focus-visible, .lang-btn:focus-visible, .side-menu button:focus-visible, .q-card:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
 .welcome-overlay {
   position: fixed; inset: 0; background: var(--bg-base); z-index: 9999;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   transition: opacity 0.8s ease, visibility 0.8s;
 }
 .welcome-logo {
-  font-size: 38px; font-weight: 800; color: var(--accent); letter-spacing: -1px;
+  font-size: 32px; font-weight: 800; color: var(--accent); letter-spacing: -1px;
   animation: welcomePop 1.2s cubic-bezier(0.17, 0.67, 0.83, 0.67) forwards;
 }
 .welcome-tagline {
@@ -113,93 +129,147 @@ i { vertical-align: middle; line-height: 1; }
 .welcome-overlay.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
 
 .ui-btn { 
-  position: fixed; 
-  top: max(12px, env(safe-area-inset-top)); 
+  position: fixed; top: max(12px, env(safe-area-inset-top)); 
   width: 44px; height: 44px; border: none; border-radius: 50%; 
   background: var(--glass-card); backdrop-filter: blur(20px); 
   -webkit-backdrop-filter: blur(20px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
   color: var(--text); font-size: 22px; display: flex; align-items: center; 
-  justify-content: center; cursor: pointer; z-index: 5000; 
+  justify-content: center; z-index: 5000; 
 }
 
-.settings-btn { right: 12px; }
-.settings-btn.active { transform: rotate(90deg) scale(1.1); }
+.settings-btn { right: 12px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.settings-btn.active { transform: rotate(180deg); background: var(--accent); color: white; }
 .home-nav-btn { right: 68px; display: none; }
 .hamburger { left: 12px; flex-direction: column; gap: 5px; }
-.hamburger span { width: 20px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; }
+.hamburger span { width: 20px; height: 2px; background: var(--text); border-radius: 2px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; pointer-events: none; }
 
 body.menu-open .hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 body.menu-open .hamburger span:nth-child(2) { opacity: 0; transform: scale(0); }
 body.menu-open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-.settings-modal { position: fixed; top: 68px; right: 12px; width: 190px; background: var(--glass-menu); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 0.5px solid var(--glass-border); border-radius: 18px; padding: 14px; z-index: 4000; display: none; opacity: 0; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow); transform: translateY(-10px); }
+.settings-modal { 
+  position: fixed; top: 68px; right: 12px; width: 260px; 
+  background: var(--glass-menu); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); 
+  border: 0.5px solid var(--glass-border); border-radius: 22px; padding: 18px; z-index: 4000; 
+  display: none; opacity: 0; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+  box-shadow: var(--shadow); transform: translateY(-10px); 
+}
 .settings-modal.active { display: block; opacity: 1; transform: translateY(0); }
 .modal-overlay { position: fixed; inset: 0; background: transparent; display: none; z-index: 3500; }
-.setting-item { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
+
+.setting-group { margin-bottom: 16px; }
+.setting-group label { 
+  margin-left: 0; margin-bottom: 8px; font-size: 10px; 
+  font-weight: 800; color: var(--text-sec); text-transform: uppercase; 
+}
+.setting-item-premium {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--glass-input); padding: 8px 12px;
+  border-radius: 12px; border: 0.5px solid var(--glass-border);
+}
+.setting-item-premium i { font-size: 20px; color: var(--accent); }
+.setting-item-premium input { 
+  background: transparent !important; border: none !important; 
+  height: auto; padding: 0; font-size: 15px; font-weight: 500; color: var(--text);
+  box-shadow: none !important; -webkit-user-select: text; user-select: text;
+}
+
+.accent-grid { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.swatch {
+  width: 28px; height: 28px; border-radius: 50%; 
+  border: 2px solid transparent;
+  position: relative;
+}
+.swatch.active { border-color: var(--text); box-shadow: 0 0 0 2px var(--accent); }
+
+.custom-picker-wrap {
+  background: var(--glass-input); display: flex; align-items: center; 
+  justify-content: center; overflow: hidden; border: 0.5px solid var(--glass-border);
+}
+.custom-picker-wrap input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.custom-picker-wrap i { font-size: 14px; opacity: 0.6; pointer-events: none; }
+
+.setting-item { display: flex; justify-content: space-between; align-items: center; margin: 12px 0; }
 .setting-item span { font-weight: 600; color: var(--text-sec); font-size: 13px; }
 
-.mini-btn { padding: 6px 14px; font-size: 14px; font-weight: 700; background: var(--glass-input); color: var(--accent); border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.mini-btn { padding: 8px 14px; font-size: 14px; font-weight: 700; background: var(--glass-input); color: var(--accent); border: none; border-radius: 12px; display: flex; align-items: center; gap: 4px; }
 
 .side-menu { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: var(--glass-menu); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-right: 0.5px solid var(--glass-border); padding: 80px 20px 20px; box-shadow: 10px 0 40px rgba(0,0,0,0.1); transition: 0.35s cubic-bezier(0.32, 0.72, 0, 1); z-index: 2500; overflow-y: auto; }
 #menuList { display: flex; flex-direction: column; }
-.side-menu button { width: 100%; padding: 16px 20px; margin-bottom: 10px; border: none; border-radius: 14px; background: transparent; color: var(--text); font-size: 17px; font-weight: 600; text-align: left; cursor: pointer; transition: background 0.2s; touch-action: none; display: flex; align-items: center; gap: 12px; }
+.side-menu button { width: 100%; padding: 16px 20px; margin-bottom: 10px; border: none; border-radius: 14px; background: transparent; color: var(--text); font-size: 17px; font-weight: 600; text-align: left; transition: background 0.2s; display: flex; align-items: center; gap: 12px; }
 .side-menu button i { color: var(--accent); font-size: 20px; }
 
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); backdrop-filter: blur(5px); display: none; z-index: 2000; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: none; z-index: 2000; }
 body.menu-open .side-menu { left: 0; }
 body.menu-open .overlay { display: block; }
 
 .section { 
-  display: none; width: 100%; height: 100%; 
-  padding: 70px 12px 350px; 
-  flex-direction: column; align-items: center; 
-  overflow-y: auto; -webkit-overflow-scrolling: touch; 
+  display: none; width: 100%; height: 100%; padding: 60px 12px 20px; 
+  flex-direction: column; align-items: center; overflow-y: auto; -webkit-overflow-scrolling: touch; 
 }
 .section.active { display: flex; animation: sectionSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-#home { justify-content: flex-start; padding-top: 100px; padding-bottom: 20px; }
-.greeting { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-align: center; opacity: 0; animation: fadeIn 1s forwards; }
+/* Home Adjustment to Avoid Scroll */
+#home { 
+  justify-content: center; 
+  padding-top: max(40px, env(safe-area-inset-top)); 
+  padding-bottom: 10px; 
+  overflow: hidden;
+}
+.greeting { font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 4px; text-align: center; opacity: 0; animation: fadeIn 1s forwards; }
 @keyframes fadeIn { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
 
-.clock-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px 0; }
-.ring-clock { position: relative; width: 280px; height: 280px; border-radius: 50%; background: var(--glass-card); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); box-shadow: var(--shadow); border: 0.5px solid var(--glass-border); display: flex; align-items: center; justify-content: center; }
+.clock-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 4px 0; pointer-events: none; }
+.ring-clock { position: relative; width: 240px; height: 240px; border-radius: 50%; background: var(--glass-card); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); box-shadow: var(--shadow); border: 0.5px solid var(--glass-border); display: flex; align-items: center; justify-content: center; }
 svg { position: absolute; width: 100%; height: 100%; transform: rotate(-90deg); z-index: 1; }
 circle { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.1s linear; }
 .sec { stroke: var(--c-sec); filter: drop-shadow(0 0 6px var(--c-sec)); }
 .min { stroke: var(--c-min); }
 .hour { stroke: var(--c-hour); }
 .digital-wrap { margin-top: 0; text-align: center; z-index: 10; position: relative; }
-.digital { font-size: 52px; font-weight: 300; color: var(--text); letter-spacing: -1px; }
-.date { font-size: 16px; font-weight: 500; color: var(--text-sec); margin-top: 2px; text-transform: uppercase; }
-.bn-date { font-size: 15px; font-weight: 700; color: var(--accent); margin-top: 4px; }
+.digital { font-size: 46px; font-weight: 300; color: var(--text); letter-spacing: -1px; }
+.date { font-size: 13px; font-weight: 500; color: var(--text-sec); margin-top: 0px; text-transform: uppercase; }
+.bn-date { font-size: 13px; font-weight: 700; color: var(--accent); margin-top: 2px; }
 
-.quick-links { display: flex; gap: 12px; margin-top: 40px; width: 100%; max-width: 320px; justify-content: center; }
-.q-card { flex: 1; background: var(--glass-card); border: 0.5px solid var(--glass-border); border-radius: 16px; padding: 12px; text-align: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.q-icon { font-size: 28px; color: var(--accent); }
-.q-name { font-size: 11px; font-weight: 600; color: var(--text-sec); }
+.quick-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; width: 100%; max-width: 380px; justify-content: center; }
+.q-card { background: var(--glass-card); border: 0.5px solid var(--glass-border); border-radius: 14px; padding: 8px 4px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.q-icon { font-size: 20px; color: var(--accent); transition: transform 0.3s; }
+.q-card:active .q-icon { transform: translateY(-3px); }
+.q-name { font-size: 11px; font-weight: 700; color: var(--text-sec); }
 
-.mini-clock { display: flex; gap: 4px; align-items: center; justify-content: center; margin-bottom: 14px; transform: scale(1.1); }
-.mc-card { background: var(--glass-input); border: 0.5px solid var(--glass-border); backdrop-filter: blur(12px); padding: 6px 8px; border-radius: 8px; font-size: 18px; font-weight: 700; font-family: 'Courier New', monospace; color: var(--text); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
-.mc-sep { font-size: 18px; color: var(--text-sec); animation: blink 1s infinite; }
-.mc-ampm { font-size: 11px; color: var(--text-sec); margin-left: 4px; font-weight: 700; text-transform: uppercase; margin-top: 6px; }
+.mini-clock { display: flex; gap: 4px; align-items: center; justify-content: center; margin-bottom: 8px; transform: scale(1.0); pointer-events: none; }
+.mc-card { background: var(--glass-input); border: 0.5px solid var(--glass-border); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 4px 6px; border-radius: 6px; font-size: 16px; font-weight: 700; font-family: 'Courier New', monospace; color: var(--text); box-shadow: 0 4px 10px rgba(0,0,0,0.08); overflow: hidden; }
+.mc-s { color: var(--danger); position: relative; }
+.mc-s.flip { animation: flipEffect 0.4s ease-in-out; }
+@keyframes flipEffect { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); opacity: 0.5; } 100% { transform: rotateX(0); opacity: 1; } }
+.mc-sep { font-size: 16px; color: var(--text-sec); animation: blink 1s infinite; }
+.mc-ampm { font-size: 10px; color: var(--text-sec); margin-left: 2px; font-weight: 700; text-transform: uppercase; margin-top: 4px; }
 @keyframes blink { 50% { opacity: 0; } }
 
-.app { width: 100%; max-width: 400px; background: var(--glass-card); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 0.5px solid var(--glass-border); border-radius: 18px; box-shadow: var(--shadow); padding: 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+.app { width: 100%; max-width: 400px; background: var(--glass-card); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 0.5px solid var(--glass-border); border-radius: 18px; box-shadow: var(--shadow); padding: 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
 .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .header-row h2 { margin: 0; font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
 
 .btn-group { display: flex; gap: 6px; }
-.lang-btn { padding: 6px 10px; font-size: 16px; font-weight: 600; background: var(--glass-input); color: var(--accent); border: none; border-radius: 100px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.lang-btn { width: 36px; height: 36px; font-size: 18px; font-weight: 600; background: var(--glass-input); color: var(--accent); border: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 .clear-btn { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
-.undo-btn { background: rgba(255, 149, 0, 0.1); color: var(--warn); }
+.undo-btn { background: rgba(255, 149, 0, 0.1); color: var(--warn); transition: opacity 0.3s; }
+.undo-btn:disabled { opacity: 0.2; pointer-events: none; }
 .share-btn { background: rgba(0, 122, 255, 0.1); color: var(--accent); }
 .voice-btn { background: rgba(52, 199, 89, 0.1); color: #34C759; }
 
-.swap-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass-input); color: var(--accent); font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; align-self: flex-end; margin-bottom: 4px; }
+/* ADDED: Export Buttons Styling */
+.export-pdf-btn { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
+.export-excel-btn { background: rgba(52, 199, 89, 0.1); color: #34C759; }
+
+/* ADDED: Date Display Styling */
+.grocery-date { font-size: 12px; color: var(--text-sec); margin-top: -4px; margin-bottom: 10px; font-weight: 600; }
+
+.swap-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass-input); color: var(--accent); font-size: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; align-self: flex-end; margin-bottom: 4px; }
 
 label { font-size: 11px; font-weight: 600; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; margin-left: 4px; display: block; }
-input, select { width: 100%; height: 42px; padding: 0 12px; background: var(--glass-input); border: none; border-radius: 10px; color: var(--text); font-size: 17px; outline: none; transition: 0.2s; font-family: inherit; }
-input:focus, select:focus { background: var(--glass-input); box-shadow: 0 0 0 2px var(--accent); }
+input, select { width: 100%; height: 42px; padding: 0 12px; background: var(--glass-input); border: none; border-radius: 10px; color: var(--text); font-size: 17px; outline: none; transition: 0.2s; font-family: inherit; -webkit-user-select: text; user-select: text; }
+input:focus, select:focus { background: var(--glass-input); box-shadow: var(--focus-ring); }
 input::placeholder { opacity: 0.2; }
 
 .row { display: flex; gap: 10px; }
@@ -217,11 +287,50 @@ input::placeholder { opacity: 0.2; }
 
 .emi-bar-wrap { height: 8px; width: 100%; background: var(--emi-principal); border-radius: 4px; overflow: hidden; margin: 10px 0 4px; display: flex; }
 .emi-bar-interest { height: 100%; background: var(--emi-interest); width: 0%; transition: width 0.5s ease; }
-.emi-legend { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-sec); }
-.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
-.rate-info { font-size: 10px; color: var(--text-sec); text-align: right; margin-top: 4px; }
 
-.footer-credit { position: fixed; bottom: 25px; width: 100%; text-align: center; font-size: 16px; color: var(--text-sec); pointer-events: none; transition: opacity 0.2s; z-index: 100; }
+.footer-credit { width: 100%; text-align: center; font-size: 12px; color: var(--text-sec); padding: 5px 0; margin-top: auto; flex-shrink: 0; }
+
+/* Grocery List Specific Styles */
+.grocery-list-container {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 220px; overflow-y: auto; padding-right: 4px;
+}
+.grocery-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--glass-input); padding: 8px 12px; border-radius: 12px;
+  border: 0.5px solid var(--glass-border);
+}
+.grocery-info { display: flex; flex-direction: column; }
+.grocery-name { font-weight: 700; color: var(--text); font-size: 15px; }
+.grocery-qty { font-size: 11px; color: var(--text-sec); font-weight: 700; }
+.grocery-actions { display: flex; gap: 6px; }
+.action-btn { 
+  width: 32px; height: 32px; border-radius: 8px; border: none; 
+  display: flex; align-items: center; justify-content: center; font-size: 18px; 
+}
+.edit-btn { background: rgba(0, 122, 255, 0.1); color: var(--accent); }
+.del-btn { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
+.add-btn-main {
+  width: 100%; padding: 12px; border: none; border-radius: 12px;
+  background: var(--accent); color: white; font-weight: 700; font-size: 16px;
+  margin-top: 5px; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+/* FIXED: Chrome <select> dropdown not clickable - z-index, pointer-events & user-select fix */
+select, input, datalist {
+  position: relative !important;
+  z-index: 100 !important;
+  pointer-events: auto !important;
+  -webkit-user-select: auto !important;
+  user-select: auto !important;
+}
+#grocery .app {
+  position: relative;
+  z-index: 5;
+}
+#groceryForm {
+  pointer-events: auto !important;
+}
 </style>
 </head>
 
@@ -234,618 +343,1001 @@ input::placeholder { opacity: 0.2; }
 <div class="bg-mesh"></div>
 <div class="floater f1"></div><div class="floater f2"></div><div class="floater f3"></div>
 
-<script>
-    /* --- THEME SYNC LOGIC --- */
-    function applyTheme(isDark) { 
-        if(isDark) { 
-            document.body.classList.add('dark'); 
-            const btn = document.getElementById('settingThemeBtn'); 
-            if(btn) btn.innerHTML = '<i class="ph-bold ph-sun"></i> Light'; 
-        } else { 
-            document.body.classList.remove('dark'); 
-            const btn = document.getElementById('settingThemeBtn'); 
-            if(btn) btn.innerHTML = '<i class="ph-bold ph-moon"></i> Dark'; 
-        } 
-    }
-
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
-    applyTheme(systemDark.matches);
-    systemDark.addEventListener('change', (e) => { 
-        if(!localStorage.getItem('dlc_manual_theme')) {
-            applyTheme(e.matches); 
-        }
-    });
-
-    function toggleTheme() { 
-        const isDarkNow = document.body.classList.contains('dark');
-        applyTheme(!isDarkNow); 
-        localStorage.setItem('dlc_manual_theme', 'true');
-        localStorage.setItem('dlc_theme', !isDarkNow ? 'dark' : 'light');
-    }
-
-    /* --- SOUND & VOICE LOGIC --- */
-    let audioCtx;
-    let isMuted = localStorage.getItem('dlc_muted') === 'true';
-
-    function initAudio() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
-    }
-
-    function playClick() {
-        if (isMuted) return;
-        initAudio();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.frequency.value = 800;
-        osc.type = 'sine';
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
-        if (navigator.vibrate) navigator.vibrate(10); 
-    }
-
-    function playTrash() {
-        if (isMuted) return;
-        initAudio();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.frequency.value = 150;
-        osc.type = 'sawtooth';
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
-    }
-
-    function toggleSound() { 
-        isMuted = !isMuted; 
-        localStorage.setItem('dlc_muted', isMuted); 
-        const btn = document.getElementById('settingSoundBtn');
-        if(btn) btn.innerHTML = isMuted ? '<i class="ph-bold ph-speaker-slash"></i> Off' : '<i class="ph-bold ph-speaker-high"></i> On';
-        if(!isMuted) playClick(); 
-    }
-
-    function readResult(secId) {
-        if (isMuted) return;
-        initAudio();
-        let text = "";
-        if (secId === 'rate') {
-            const totalVal = document.getElementById('total').innerText;
-            const resVal = document.getElementById('result').innerText;
-            text = isEn ? `Total Price is ${totalVal}. You will get ${resVal}` : `মোট দাম ${totalVal} টাকা। আপনি পাবেন ${resVal}`;
-        } else if (secId === 'fuel') {
-            const cost = document.getElementById('resFCost').innerText;
-            const fuel = document.getElementById('resFFuel').innerText;
-            text = isEn ? `Total fuel cost is ${cost} rupees. Required fuel is ${fuel}` : `মোট তেলের খরচ ${cost} টাকা। তেল লাগবে ${fuel}`;
-        } else if (secId === 'age') {
-            const y = document.getElementById('resYears').innerText;
-            const m = document.getElementById('resMonths').innerText;
-            const d = document.getElementById('resDays').innerText;
-            text = isEn ? `Your age is ${y} years, ${m} months, and ${d} days` : `আপনার বয়স ${y} বছর, ${m} মাস, এবং ${d} দিন`;
-        } else if (secId === 'emi') {
-            const emi = document.getElementById('resEmi').innerText;
-            text = isEn ? `Monthly E.M.I. is ${emi} rupees` : `মাসিক কিস্তি হচ্ছে ${emi} টাকা`;
-        } else if (secId === 'cash') {
-            const cash = document.getElementById('resCashTotal').innerText;
-            text = isEn ? `Total amount is ${cash}` : `সর্বমোট টাকার পরিমাণ ${cash}`;
-        } else if (secId === 'percent') {
-            const res = document.getElementById('pcRes').innerText;
-            text = isEn ? `Calculation result is ${res}` : `হিসাবের ফলাফল হলো ${res}`;
-        } else if (secId === 'converter') {
-            const out = document.getElementById('cvOut').value;
-            const unit = document.getElementById('cvUnitTo').value;
-            text = isEn ? `Converted result is ${out} ${unit}` : `ফলাফল হলো ${out} ${unit}`;
-        } else if (secId === 'currency') {
-            const res = document.getElementById('curResult').innerText;
-            text = isEn ? `Converted amount is ${res}` : `রূপান্তরিত পরিমাণ হলো ${res}`;
-        }
-
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = isEn ? 'en-IN' : 'bn-IN';
-            utterance.rate = 1.0;
-            window.speechSynthesis.speak(utterance);
-        }
-    }
-
-    function saveUserName() {
-        const name = document.getElementById('userNameInput').value;
-        localStorage.setItem('dlc_username', name);
-        updateClocks();
-    }
-</script>
-
-<button class="ui-btn settings-btn" id="setBtn" onclick="toggleSettings(); playClick()"><i class="ph-bold ph-gear"></i></button>
-<button class="ui-btn home-nav-btn" id="homeNavBtn" onclick="showSection('home'); playClick()"><i class="ph-bold ph-house"></i></button>
-<div class="ui-btn hamburger" onclick="toggleMenu(); playClick()"><span></span><span></span><span></span></div>
-
 <div class="modal-overlay" id="modalOverlay" onclick="toggleSettings()"></div>
 <div class="settings-modal" id="settingsModal">
-  <div class="setting-item">
-    <span>Your Name</span>
-    <input type="text" id="userNameInput" placeholder="Enter name" oninput="saveUserName()" style="width: 80px; height: 30px; font-size: 11px; text-align: center; border-radius: 8px;">
+  <div class="setting-group">
+    <label for="userNameInput" data-lang="name">User Profile</label>
+    <div class="setting-item-premium">
+      <i class="ph-bold ph-user-circle"></i>
+      <input type="text" id="userNameInput" placeholder="Enter your name..." oninput="saveUserName()">
+    </div>
   </div>
-  <div class="setting-item">
-    <span>Accent Color</span>
-    <input type="color" id="accentPicker" oninput="changeAccent(this.value)" style="width: 40px; height: 30px; border: none; background: transparent; cursor: pointer;">
+
+  <div class="setting-group">
+    <label data-lang="accent">Accent Color</label>
+    <div class="accent-grid">
+      <div class="swatch" role="button" tabindex="0" style="background: #007AFF;" onclick="changeAccent('#007AFF'); playClick()"></div>
+      <div class="swatch" role="button" tabindex="0" style="background: #AF52DE;" onclick="changeAccent('#AF52DE'); playClick()"></div>
+      <div class="swatch" role="button" tabindex="0" style="background: #34C759;" onclick="changeAccent('#34C759'); playClick()"></div>
+      <div class="swatch" role="button" tabindex="0" style="background: #FF9500;" onclick="changeAccent('#FF9500'); playClick()"></div>
+      <div class="swatch" role="button" tabindex="0" style="background: #FF3B30;" onclick="changeAccent('#FF3B30'); playClick()"></div>
+      <div class="swatch custom-picker-wrap" role="button" tabindex="0">
+         <input type="color" id="accentPicker" oninput="changeAccent(this.value)" aria-label="Custom Accent Color">
+         <i class="ph-bold ph-plus"></i>
+      </div>
+    </div>
   </div>
-  <div class="setting-item">
-    <span>Language</span>
-    <button class="mini-btn" onclick="toggleGlobalLang(); playClick()" id="settingLangBtn"><i class="ph-bold ph-globe"></i> EN</button>
-  </div>
-  <div class="setting-item">
-    <span>Sound</span>
-    <button class="mini-btn" onclick="toggleSound();" id="settingSoundBtn"><i class="ph-bold ph-speaker-high"></i> On</button>
-  </div>
-  <div class="setting-item">
-    <span>Theme</span>
-    <button class="mini-btn" onclick="toggleTheme(); playClick()" id="settingThemeBtn"><i class="ph-bold ph-moon"></i> Dark</button>
-  </div>
+
+  <div class="setting-item"> <span data-lang="language">Language</span> <button class="mini-btn" onclick="toggleGlobalLang(); playClick()" id="settingLangBtn" aria-label="Toggle Language"><i class="ph-bold ph-globe"></i> EN</button> </div>
+  <div class="setting-item"> <span data-lang="sound">Sound</span> <button class="mini-btn" onclick="toggleSound(); playClick()" id="settingSoundBtn" aria-label="Toggle Sound"><i class="ph-bold ph-speaker-high"></i> On</button> </div>
 </div>
 
+<button class="ui-btn settings-btn" id="setBtn" onclick="toggleSettings(); playClick()" aria-label="Settings"><i class="ph-bold ph-gear"></i></button>
+<button class="ui-btn home-nav-btn" id="homeNavBtn" onclick="showSection('home'); playClick()" aria-label="Home"><i class="ph-bold ph-house"></i></button>
+<button class="ui-btn hamburger" onclick="toggleMenu(); playClick()" aria-label="Menu"><span></span><span></span><span></span></button>
+
 <div class="side-menu">
- <div class="menu-version-top">v1.2.5</div> 
- <div style="font-size:24px; font-weight:700; margin-bottom:20px; padding-left:10px;">Menu</div>
+ <div class="menu-version-top">v1.2.8</div> 
+ <div style="font-size:24px; font-weight:700; margin-bottom:20px;" data-lang="menuTitle">Menu</div>
  <div id="menuList">
-     <button onclick="onMenuClick('home'); playClick()"><i class="ph-bold ph-house"></i> Home</button>
-     <button onclick="onMenuClick('rate'); playClick()"><i class="ph-bold ph-scales"></i> Price Calculator</button>
-     <button onclick="onMenuClick('fuel'); playClick()"><i class="ph-bold ph-gas-pump"></i> Fuel Calculator</button>
-     <button onclick="onMenuClick('age'); playClick()"><i class="ph-bold ph-cake"></i> Age Calculator</button>
-     <button onclick="onMenuClick('emi'); playClick()"><i class="ph-bold ph-bank"></i> EMI Calculator</button>
-     <button onclick="onMenuClick('currency'); playClick()"><i class="ph-bold ph-currency-circle-dollar"></i> Currency Converter</button>
-     <button onclick="onMenuClick('percent'); playClick()"><i class="ph-bold ph-percent"></i> Percentage Calculator</button>
-     <button onclick="onMenuClick('converter'); playClick()"><i class="ph-bold ph-arrows-left-right"></i> Unit Converter</button>
-     <button onclick="onMenuClick('cash'); playClick()"><i class="ph-bold ph-money"></i> Cash Counter</button>
+     <button onclick="onMenuClick('home'); playClick()"><i class="ph-bold ph-house"></i> <span data-lang="mHome">Home</span></button>
+     <button onclick="onMenuClick('grocery'); playClick()"><i class="ph-bold ph-shopping-cart"></i> <span data-lang="mGroc">Grocery List</span></button>
+     <button onclick="onMenuClick('rate'); playClick()"><i class="ph-bold ph-scales"></i> <span data-lang="mPrice">Price Calculator</span></button>
+     <button onclick="onMenuClick('fuel'); playClick()"><i class="ph-bold ph-gas-pump"></i> <span data-lang="mFuel">Fuel Calculator</span></button>
+     <button onclick="onMenuClick('age'); playClick()"><i class="ph-bold ph-cake"></i> <span data-lang="mAge">Age Calculator</span></button>
+     <button onclick="onMenuClick('emi'); playClick()"><i class="ph-bold ph-bank"></i> <span data-lang="mEmi">EMI Calculator</span></button>
+     <button onclick="onMenuClick('currency'); playClick()"><i class="ph-bold ph-currency-circle-dollar"></i> <span data-lang="mCur">Currency Converter</span></button>
+     <button onclick="onMenuClick('percent'); playClick()"><i class="ph-bold ph-percent"></i> <span data-lang="mPerc">Percentage Calculator</span></button>
+     <button onclick="onMenuClick('converter'); playClick()"><i class="ph-bold ph-arrows-left-right"></i> <span data-lang="mConv">Unit Converter</span></button>
+     <button onclick="onMenuClick('cash'); playClick()"><i class="ph-bold ph-money"></i> <span data-lang="mCash">Cash Counter</span></button>
  </div>
 </div>
 <div class="overlay" onclick="toggleMenu()"></div>
 
 <section id="home" class="section active">
  <div class="greeting" id="greeting">Hello</div>
+ 
+ <div class="astro-info" id="astroBox">
+    <div class="astro-label" id="astroTitle">সূর্যের অবস্থান</div>
+    <div class="astro-vals">
+      <span id="astroAlt">উচ্চতা: ০.০০°</span>
+      <span id="astroDir">দিক: উত্তর</span>
+    </div>
+ </div>
+
  <div class="clock-wrap">
   <div class="ring-clock">
-   <svg viewBox="0 0 280 280"><circle class="hour" cx="140" cy="140" r="110" stroke-width="12"/><circle class="min" cx="140" cy="140" r="95" stroke-width="12"/><circle class="sec" cx="140" cy="140" r="80" stroke-width="12"/></svg>
+   <svg viewBox="0 0 220 220"><circle class="hour" cx="110" cy="110" r="85" stroke-width="10"/><circle class="min" cx="110" cy="110" r="70" stroke-width="10"/><circle class="sec" cx="110" cy="110" r="55" stroke-width="10"/></svg>
    <div class="digital-wrap">
      <div class="digital" id="time">00:00</div>
      <div class="date" id="date">Loading...</div>
      <div class="bn-date" id="bnCalendar">...</div>
    </div>
   </div>
+  <div class="moon-wrap"> <div id="moonIcon"></div> <div id="moonName"></div> </div>
  </div>
  <div class="quick-links">
-     <div class="q-card" onclick="showSection('rate'); playClick()"><div class="q-icon"><i class="ph-duotone ph-scales"></i></div><div class="q-name">Price</div></div>
-     <div class="q-card" onclick="showSection('fuel'); playClick()"><div class="q-icon"><i class="ph-duotone ph-gas-pump"></i></div><div class="q-name">Fuel</div></div>
-     <div class="q-card" onclick="showSection('age'); playClick()"><div class="q-icon"><i class="ph-duotone ph-cake"></i></div><div class="q-name">Age</div></div>
+     <div class="q-card" role="button" tabindex="0" onclick="showSection('grocery'); playClick()"><div class="q-icon"><i class="ph-duotone ph-shopping-cart"></i></div><div class="q-name" data-lang="qGroc">Grocery</div></div>
+     <div class="q-card" role="button" tabindex="0" onclick="showSection('rate'); playClick()"><div class="q-icon"><i class="ph-duotone ph-scales"></i></div><div class="q-name" data-lang="qPrice">Price</div></div>
+     <div class="q-card" role="button" tabindex="0" onclick="showSection('fuel'); playClick()"><div class="q-icon"><i class="ph-duotone ph-gas-pump"></i></div><div class="q-name" data-lang="qFuel">Fuel</div></div>
+     <div class="q-card" role="button" tabindex="0" onclick="showSection('age'); playClick()"><div class="q-icon"><i class="ph-duotone ph-cake"></i></div><div class="q-name" data-lang="qAge">Age</div></div>
+     <div class="q-card" role="button" tabindex="0" onclick="showSection('emi'); playClick()"><div class="q-icon"><i class="ph-duotone ph-bank"></i></div><div class="q-name" data-lang="qEmi">EMI</div></div>
+     <div class="q-card" role="button" tabindex="0" onclick="showSection('currency'); playClick()"><div class="q-icon"><i class="ph-duotone ph-currency-circle-dollar"></i></div><div class="q-name" data-lang="qCur">Cur.</div></div>
+     <div class="q-card" role="button" tabindex="0" onclick="showSection('percent'); playClick()"><div class="q-icon"><i class="ph-duotone ph-percent"></i></div><div class="q-name" data-lang="qPerc">Perc.</div></div>
+     <div class="q-card" role="button" tabindex="0" onclick="showSection('cash'); playClick()"><div class="q-icon"><i class="ph-duotone ph-money"></i></div><div class="q-name" data-lang="qCash">Cash</div></div>
  </div>
+ <div class="footer-credit">Made with ❤️ by Aditya</div>
+</section>
+
+<template id="miniClockTemp">
+    <div class="mini-clock">
+        <div class="mc-card mc-h">12</div><div class="mc-sep">:</div>
+        <div class="mc-card mc-m">00</div><div class="mc-sep">:</div>
+        <div class="mc-card mc-s">00</div><div class="mc-ampm">AM</div>
+    </div>
+</template>
+
+<section id="grocery" class="section">
+  <div class="clock-inject"></div>
+  <div class="app">
+    <div class="header-row">
+      <h2 data-lang="mGroc">Grocery List</h2>
+      <div class="btn-group">
+        <button class="lang-btn export-pdf-btn" onclick="exportGroceryPDF(); playClick()" title="Export PDF"><i class="ph-bold ph-file-pdf"></i></button>
+        <button class="lang-btn export-excel-btn" onclick="exportGroceryExcel(); playClick()" title="Export Excel"><i class="ph-bold ph-file-xls"></i></button>
+        <button class="lang-btn share-btn" onclick="shareAsText('grocery'); playClick()" aria-label="Copy Text"><i class="ph-bold ph-copy"></i></button>
+        <button class="lang-btn share-btn" onclick="shareAsImage('grocery')" aria-label="Share Image"><i class="ph-bold ph-image-square"></i></button>
+        <button class="lang-btn undo-btn" id="undo-grocery" onclick="undoData('grocery'); playClick()" aria-label="Undo"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+        <button class="lang-btn clear-btn" onclick="clearGrocery(); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
+      </div>
+    </div>
+    <div id="grocery-date" class="grocery-date"></div>
+    
+    <div id="groceryForm" style="display: flex; flex-direction: column; gap: 8px;">
+      <div>
+        <label for="gItemName" data-lang="gItem">Item Name</label>
+        <input id="gItemName" type="text" list="groceryItemsList" placeholder="e.g. Rice">
+        <datalist id="groceryItemsList">
+          <option value="Sperkle বাটি"><option value="সস(RS-15)"><option value="পাঁচ ফোড়ন"><option value="কালো জিরা">
+          <option value="কাবলী ছোলা"><option value="মটর"><option value="মুসুর ডাল"><option value="চা (TATA TEA GLOD)">
+          <option value="চাউ"><option value="চিনি"><option value="বিস্কুট (JAYA MARIE)"><option value="Amul Spray">
+          <option value="মৌরি"><option value="clinic plus"><option value="ধুপ কাঠি (বড়)"><option value="বাতাস (লাল)">
+          <option value="colgate (50 GRAM)"><option value="চানাচুর (সাথী ঝাল)"><option value="চানাচুর (সাথী মিষ্টি)"><option value="জিরে গুঁড়ো (COOKME)">
+          <option value="হলুদ গুঁড়ো (COOKME)"><option value="বরোলিন"><option value="Gillete Guard"><option value="Dettol SOAP">
+          <option value="Lux"><option value="Dove (ছোট)"><option value="Sunlight (500g)"><option value="ছোলা">
+          <option value="মুগ ডাল"><option value="বাদাম"><option value="Tata salt"><option value="সাদা সরষে">
+          <option value="গোটা জিরা"><option value="সরষে তেল (FORTUNE)"><option value="সয়াবিন (ছোট)"><option value="দেশলাই">
+          <option value="Dettol (liquid)"><option value="খেজুর"><option value="Jack Body Oil"><option value="Soya Sos">
+          <option value="Chili Sos"><option value="JOL JIRA"><option value="Tooth Brush"><option value="ঘি (মর্টন)">
+          <option value="জিরা"><option value="আচার (MIXED)"><option value="পাপড় (BAT)"><option value="BIG B BISCUIT">
+          <option value="ময়দা"><option value="Closeup (50 GRAM)"><option value="ছোটো বোরি"><option value="পোস্ত">
+          <option value="MEAT MASALA"><option value="শাহী গরম মসলা গুড়ো"><option value="Sunflower Oil"><option value="ছোলার ডাল">
+        </datalist>
+      </div>
+      <div class="row">
+        <div><label for="gItemQty" data-lang="gQty">Quantity</label><input id="gItemQty" type="number" inputmode="decimal" placeholder="1"></div>
+        <div>
+          <label for="gItemUnit" data-lang="gUnit">Unit</label>
+          <select id="gItemUnit">
+            <option value="পিস">পিস (Piece)</option>
+            <option value="কেজি">কেজি (KG)</option>
+            <option value="গ্রাম">গ্রাম (Gram)</option>
+            <option value="লিটার">লিটার (Liter)</option>
+            <option value="মিলি">মিলি (ML)</option>
+            <option value="ডজন">ডজন (Dozen)</option>
+            <option value="প্যাকেট">প্যাকেট (Packet)</option>
+            <option value="অন্যান্য">অন্যান্য (Other)</option>
+          </select>
+        </div>
+      </div>
+      <button class="add-btn-main" onclick="saveGroceryItem(); playClick()" id="gAddBtn">Add Item</button>
+    </div>
+
+    <div class="info-title" data-lang="gListTitle">Current List</div>
+    <div class="grocery-list-container" id="groceryDisplay"></div>
+  </div>
+  <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
 
 <section id="rate" class="section">
- <div class="mini-clock"><div class="mc-card mc-h">12</div><div class="mc-sep">:</div><div class="mc-card mc-m">00</div><div class="mc-sep">:</div><div class="mc-card mc-s" style="color:var(--c-sec)">00</div><div class="mc-ampm">AM</div></div>
+ <div class="clock-inject"></div>
  <div class="app">
-  <div class="header-row"><h2 id="rateTitle">Price Calculator</h2>
+  <div class="header-row"><h2 data-lang="mPrice">Price Calculator</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('rate'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsText('rate'); playClick()"><i class="ph-bold ph-copy"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('rate')"><i class="ph-bold ph-image-square"></i></button>
-    <button class="lang-btn undo-btn" onclick="undoData('rate'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
-    <button class="lang-btn clear-btn" onclick="clearData('rate'); playTrash()"><i class="ph-bold ph-trash"></i></button>
+    <button class="lang-btn voice-btn" onclick="readResult('rate'); playClick()" aria-label="Read Result"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('rate'); playClick()" aria-label="Copy Text"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('rate')" aria-label="Share Image"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" id="undo-rate" onclick="undoData('rate'); playClick()" aria-label="Undo"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('rate'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label id="lp">Price per Kg</label><input id="price" type="number" inputmode="decimal" placeholder="0"></div>
-  <div class="row"><div><label id="lw">Weight</label><input id="weight" type="number" inputmode="decimal" placeholder="0"></div><div><label id="lu">Unit</label><select id="unit"><option value="g">Gram</option><option value="kg">Kg</option></select></div></div>
-  <div class="box box-compact"><span id="lt">Total</span><span class="total" id="total">0.00</span></div>
-  <div><label id="la">Pay Amount</label><input id="amount" type="number" inputmode="decimal" placeholder="0"></div>
-  <div class="box box-compact"><span id="lg">Result</span><span class="total" id="result">0 g</span></div>
+  <div><label for="price" data-lang="lPrice">Price per Kg</label><input id="price" type="number" inputmode="decimal" placeholder="0.00"></div>
+  <div class="row"><div><label for="weight" data-lang="lWeight">Weight</label><input id="weight" type="number" inputmode="decimal" placeholder="0.00"></div><div><label for="unit" data-lang="lUnit">Unit</label><select id="unit"><option value="g" data-lang="uGram">Gram</option><option value="kg" data-lang="uKg">Kg</option></select></div></div>
+  <div class="box box-compact"><span data-lang="lTotal">Total</span><span class="total" id="total">₹ 0.00</span></div>
+  <div><label for="amount" data-lang="lPay">Pay Amount</label><input id="amount" type="number" inputmode="decimal" placeholder="0.00"></div>
+  <div class="box box-compact"><span data-lang="lRes">Result</span><span class="total" id="result">0.00 g</span></div>
  </div>
+ <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
 
 <section id="fuel" class="section">
- <div class="mini-clock"><div class="mc-card mc-h">12</div><div class="mc-sep">:</div><div class="mc-card mc-m">00</div><div class="mc-sep">:</div><div class="mc-card mc-s" style="color:var(--c-sec)">00</div><div class="mc-ampm">AM</div></div>
+ <div class="clock-inject"></div>
  <div class="app">
-  <div class="header-row"><h2 id="fuelTitle">Fuel Calculator</h2>
+  <div class="header-row"><h2 data-lang="mFuel">Fuel Calculator</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('fuel'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsText('fuel'); playClick()"><i class="ph-bold ph-copy"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('fuel')"><i class="ph-bold ph-image-square"></i></button>
-    <button class="lang-btn undo-btn" onclick="undoData('fuel'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
-    <button class="lang-btn clear-btn" onclick="clearData('fuel'); playTrash()"><i class="ph-bold ph-trash"></i></button>
+    <button class="lang-btn voice-btn" onclick="readResult('fuel'); playClick()" aria-label="Read Result"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('fuel'); playClick()" aria-label="Copy Text"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('fuel')" aria-label="Share Image"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" id="undo-fuel" onclick="undoData('fuel'); playClick()" aria-label="Undo"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('fuel'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div class="row"><div><label id="lblDist">Distance (km)</label><input id="fuelDist" type="number" inputmode="decimal" placeholder="100"></div><div><label id="lblMil">Mileage (km/L)</label><input id="fuelMil" type="number" inputmode="decimal" placeholder="45"></div></div>
-  <div class="row"><div><label id="lblFPrice">Price (per L)</label><input id="fuelPrice" type="number" inputmode="decimal" placeholder="100"></div><div><label id="lblSpeed">Speed (km/h)</label><input id="fuelSpeed" type="number" inputmode="decimal" placeholder="60"></div></div>
-  <div class="box" style="margin-top:8px; background: rgba(0,122,255,0.1); border: 1px solid rgba(0,122,255,0.2);"><span id="lblFCost">Total Cost</span><span class="total" id="resFCost" style="font-size: 24px; color: var(--accent);">0.00</span></div>
-  <div class="grid-2" style="margin-top:8px;"><div class="box"><span id="lblFFuel">Fuel Needed</span><span class="total" id="resFFuel">0 L</span></div><div class="box"><span id="lblFTime">Est. Time</span><span class="total" id="resFTime">0m</span></div></div>
+  <div class="row"><div><label for="fuelDist" data-lang="fDist">Distance (km)</label><input id="fuelDist" type="number" inputmode="decimal" placeholder="100.00"></div><div><label for="fuelMil" data-lang="fMil">Mileage (km/L)</label><input id="fuelMil" type="number" inputmode="decimal" placeholder="45.00"></div></div>
+  <div class="row"><div><label for="fuelPrice" data-lang="fPrc">Price (per L)</label><input id="fuelPrice" type="number" inputmode="decimal" placeholder="100.00"></div><div><label for="fuelSpeed" data-lang="fSpd">Speed (km/h)</label><input id="fuelSpeed" type="number" inputmode="decimal" placeholder="60.00"></div></div>
+  <div class="box" style="background: rgba(0,122,255,0.1);"><span data-lang="lTotal">Total Cost</span><span class="total" id="resFCost">0.00</span></div>
+  <div class="grid-2"><div class="box"><span data-lang="fNeed">Fuel Needed</span><span class="total" id="resFFuel">0.00 L</span></div><div class="box"><span data-lang="fTime">Est. Time</span><span class="total" id="resFTime">0m</span></div></div>
  </div>
+ <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
 
 <section id="age" class="section">
- <div class="mini-clock"><div class="mc-card mc-h">12</div><div class="mc-sep">:</div><div class="mc-card mc-m">00</div><div class="mc-sep">:</div><div class="mc-card mc-s" style="color:var(--c-sec)">00</div><div class="mc-ampm">AM</div></div>
+ <div class="clock-inject"></div>
  <div class="app">
-  <div class="header-row"><h2 id="ageTitle">Age Calculator</h2>
+  <div class="header-row"><h2 data-lang="mAge">Age Calculator</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('age'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsText('age'); playClick()"><i class="ph-bold ph-copy"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('age')"><i class="ph-bold ph-image-square"></i></button>
-    <button class="lang-btn undo-btn" onclick="undoData('age'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
-    <button class="lang-btn clear-btn" onclick="clearData('age'); playTrash()"><i class="ph-bold ph-trash"></i></button>
+    <button class="lang-btn voice-btn" onclick="readResult('age'); playClick()" aria-label="Read Result"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('age'); playClick()" aria-label="Copy Text"><i class="ph-bold ph-copy"></i></button> <button class="lang-btn share-btn" onclick="shareAsImage('age')" aria-label="Share Image"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" id="undo-age" onclick="undoData('age'); playClick()" aria-label="Undo"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('age'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label id="lblDob">Date of Birth</label><input id="dobInput" type="date"></div>
+  <div><label for="dobInput" data-lang="aDob">Date of Birth</label><input id="dobInput" type="date"></div>
   <div class="grid-2" style="margin-top:8px;">
-    <div class="box"><span id="lblYears">Years</span><span class="total" id="resYears">0</span></div>
-    <div class="box"><span id="lblMonths">Months</span><span class="total" id="resMonths">0</span></div>
-    <div class="box"><span id="lblDays">Days</span><span class="total" id="resDays">0</span></div>
-    <div class="box"><span id="lblNextBday">Next B'day</span><span class="total" id="resNextBday" style="color: #FF9500;">-</span></div>
+    <div class="box"><span data-lang="aYrs">Years</span><span class="total" id="resYears">0.00</span></div>
+    <div class="box"><span data-lang="aMnts">Months</span><span class="total" id="resMonths">0.00</span></div>
+    <div class="box"><span data-lang="aDys">Days</span><span class="total" id="resDays">0.00</span></div>
+    <div class="box"><span data-lang="aNext">Next B'day</span><span class="total" id="resNextBday" style="color: #FF9500;">-</span></div>
   </div>
-  <div id="funContainer" class="fun-container" style="display:none;">
-      <div class="info-title" id="lblDetails">Details</div>
-      <div class="info-row"><span class="info-label" id="lblBornDay">Born On</span><span class="info-val" id="resBornDay">-</span></div>
-      <div class="info-row"><span class="info-label" id="lblZodiac">Zodiac</span><span class="info-val" id="resZodiac">-</span></div>
-      <div class="info-title" id="lblLifeStats">Total Life Stats</div>
-      <div class="info-row"><span class="info-label" id="lblTotMonths">Total Months</span><span class="info-val" id="resTotMonths">0</span></div>
-      <div class="info-row"><span class="info-label" id="lblTotWeeks">Total Weeks</span><span class="info-val" id="resTotWeeks">0</span></div>
-      <div class="info-row"><span class="info-label" id="lblTotDays">Total Days</span><span class="info-val" id="resTotDays">0</span></div>
+  <div id="funContainer" style="display:none;">
+      <div class="info-title" data-lang="aDet">Details</div>
+      <div class="info-row"><span class="info-label" data-lang="aBorn">Born On</span><span class="info-val" id="resBornDay">-</span></div>
+      <div class="info-row"><span class="info-label" data-lang="aZod">Zodiac</span><span class="info-val" id="resZodiac">-</span></div>
+      <div class="info-title" data-lang="aStats">Total Life Stats</div>
+      <div class="info-row"><span class="info-label" data-lang="aTMnt">Total Months</span><span class="info-val" id="resTotMonths">0.00</span></div>
+      <div class="info-row"><span class="info-label" data-lang="aTWk">Total Weeks</span><span class="info-val" id="resTotWeeks">0.00</span></div>
+      <div class="info-row"><span class="info-label" data-lang="aTDy">Total Days</span><span class="info-val" id="resTotDays">0.00</span></div>
   </div>
  </div>
+ <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
 
 <section id="emi" class="section">
- <div class="mini-clock"><div class="mc-card mc-h">12</div><div class="mc-sep">:</div><div class="mc-card mc-m">00</div><div class="mc-sep">:</div><div class="mc-card mc-s" style="color:var(--c-sec)">00</div><div class="mc-ampm">AM</div></div>
+ <div class="clock-inject"></div>
  <div class="app">
-  <div class="header-row"><h2 id="emiTitle">EMI Calculator</h2>
+  <div class="header-row"><h2 data-lang="mEmi">EMI Calculator</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('emi'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsText('emi'); playClick()"><i class="ph-bold ph-copy"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('emi')"><i class="ph-bold ph-image-square"></i></button>
-    <button class="lang-btn undo-btn" onclick="undoData('emi'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
-    <button class="lang-btn clear-btn" onclick="clearData('emi'); playTrash()"><i class="ph-bold ph-trash"></i></button>
+    <button class="lang-btn voice-btn" onclick="readResult('emi'); playClick()" aria-label="Read Result"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('emi'); playClick()" aria-label="Copy Text"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('emi')" aria-label="Share Image"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" id="undo-emi" onclick="undoData('emi'); playClick()" aria-label="Undo"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('emi'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label id="lblLoan">Loan Amount</label><input id="emiPrincipal" type="number" inputmode="decimal" placeholder="500000"></div>
-  <div class="row"><div><label id="lblRate">Interest (%)</label><input id="emiRate" type="number" inputmode="decimal" placeholder="10.5"></div><div><label id="lblYears">Years</label><input id="emiYears" type="number" inputmode="decimal" placeholder="5"></div></div>
-  <div class="box" style="background: rgba(0,122,255,0.1); border: 1px solid rgba(0,122,255,0.2);"><span id="lblEmiRes">Monthly EMI</span><span class="total" id="resEmi" style="font-size: 24px; color: var(--accent);">0.00</span></div>
+  <div><label for="emiPrincipal" data-lang="eLoan">Loan Amount</label><input id="emiPrincipal" type="number" inputmode="decimal" placeholder="500000.00"></div>
+  <div class="row"><div><label for="emiRate" data-lang="eRate">Interest (%)</label><input id="emiRate" type="number" inputmode="decimal" placeholder="10.50"></div><div><label for="emiYears" data-lang="eYrs">Years</label><input id="emiYears" type="number" inputmode="decimal" placeholder="5.00"></div></div>
+  <div class="box" style="background: rgba(0,122,255,0.1);"><span data-lang="eRes">Monthly EMI</span><span class="total" id="resEmi">0.00</span></div>
   <div class="emi-bar-wrap"><div id="emiBarInt" class="emi-bar-interest"></div></div>
-  <div class="emi-legend"><span><span class="dot" style="background:var(--emi-principal)"></span><span id="txtPrin">Principal</span></span><span><span class="dot" style="background:var(--emi-interest)"></span><span id="txtInt">Interest</span></span></div>
-  <div class="grid-2" style="margin-top:8px;"><div class="box"><span id="lblTotalInt">Total Interest</span><span class="total" id="resTotalInt" style="color:var(--emi-interest)">0</span></div><div class="box"><span id="lblTotalPay">Total Payment</span><span class="total" id="resTotalPay">0</span></div></div>
+  <div class="grid-2" style="margin-top:8px;"><div class="box"><span data-lang="eTInt">Total Interest</span><span class="total" id="resTotalInt">0.00</span></div><div class="box"><span data-lang="eTPay">Total Payment</span><span class="total" id="resTotalPay">0.00</span></div></div>
  </div>
+ <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
 
 <section id="currency" class="section">
- <div class="mini-clock"><div class="mc-card mc-h">12</div><div class="mc-sep">:</div><div class="mc-card mc-m">00</div><div class="mc-sep">:</div><div class="mc-card mc-s" style="color:var(--c-sec)">00</div><div class="mc-ampm">AM</div></div>
+ <div class="clock-inject"></div>
  <div class="app">
-  <div class="header-row"><h2 id="curTitle">Currency Converter</h2>
+  <div class="header-row"><h2 data-lang="mCur">Currency Converter</h2>
    <div class="btn-group">
-    <button class="lang-btn" onclick="refreshCurrencyRates(); playClick()"><i class="ph-bold ph-arrows-clockwise"></i></button>
-    <button class="lang-btn voice-btn" onclick="readResult('currency'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsText('currency'); playClick()"><i class="ph-bold ph-copy"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('currency')"><i class="ph-bold ph-image-square"></i></button>
-    <button class="lang-btn undo-btn" onclick="undoData('currency'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
-    <button class="lang-btn clear-btn" onclick="clearData('currency'); playTrash()"><i class="ph-bold ph-trash"></i></button>
+    <button class="lang-btn voice-btn" onclick="readResult('currency'); playClick()" aria-label="Read Result"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('currency'); playClick()" aria-label="Copy Text"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('currency')" aria-label="Share Image"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn" onclick="convertCurrency(); playClick()" aria-label="Refresh Rates"><i class="ph-bold ph-arrows-clockwise"></i></button>
+    <button class="lang-btn undo-btn" id="undo-currency" onclick="undoData('currency'); playClick()" aria-label="Undo"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('currency'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label id="curLblAmount">Amount</label><input id="curAmount" type="number" inputmode="decimal" placeholder="1" value="1"></div>
-  <div class="row"><div><label id="curLblFrom">From</label><select id="curFrom" onchange="convertCurrency(); playClick()"></select></div><button class="swap-btn" onclick="swapCurrency(); playClick()"><i class="ph-bold ph-arrows-left-right"></i></button><div><label id="curLblTo">To</label><select id="curTo" onchange="convertCurrency(); playClick()"></select></div></div>
-  <div class="box"><span id="curLblResult">Result</span><span class="total" id="curResult">...</span><div class="rate-info" id="curRateInfo">Fetching rates...</div></div>
+  <div><label for="curAmount" data-lang="cAmt">Amount</label><input id="curAmount" type="number" inputmode="decimal" value="1.00" placeholder="0.00"></div>
+  <div class="row"><div><label for="curFrom" data-lang="cFrom">From</label><select id="curFrom" onchange="convertCurrency()"></select></div><button class="swap-btn" onclick="swapCurrency(); playClick()" aria-label="Swap Currency"><i class="ph-bold ph-arrows-left-right"></i></button><div><label for="curTo" data-lang="cTo">To</label><select id="curTo" onchange="convertCurrency()"></select></div></div>
+  <div class="box"><span data-lang="lRes">Result</span><span class="total" id="curResult">...</span><div class="rate-info" id="curRateInfo" style="font-size: 11px; color: var(--text-sec); margin-top: 4px;">Fetching...</div></div>
  </div>
+ <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
 
 <section id="percent" class="section">
- <div class="mini-clock"><div class="mc-card mc-h">12</div><div class="mc-sep">:</div><div class="mc-card mc-m">00</div><div class="mc-sep">:</div><div class="mc-card mc-s" style="color:var(--c-sec)">00</div><div class="mc-ampm">AM</div></div>
+ <div class="clock-inject"></div>
  <div class="app">
-  <div class="header-row"><h2 id="pcTitle">Percent Calculator</h2>
+  <div class="header-row"><h2 data-lang="mPerc">Percentage Calculator</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('percent'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsText('percent'); playClick()"><i class="ph-bold ph-copy"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('percent')"><i class="ph-bold ph-image-square"></i></button>
-    <button class="lang-btn undo-btn" onclick="undoData('percent'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
-    <button class="lang-btn clear-btn" onclick="clearData('percent'); playTrash()"><i class="ph-bold ph-trash"></i></button>
+    <button class="lang-btn voice-btn" onclick="readResult('percent'); playClick()" aria-label="Read Result"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('percent'); playClick()" aria-label="Copy Text"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('percent')" aria-label="Share Image"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" id="undo-percent" onclick="undoData('percent'); playClick()" aria-label="Undo"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('percent'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label id="lblType">Mode</label><select id="pcMode" onchange="updatePCLayout(); playClick()"><option value="1">X is what % of Y</option><option value="2">X% of Y</option><option value="3">% Increase/Decrease</option><option value="4">Reverse %</option></select></div>
-  <div class="row"><div><label id="pcL1">X Value</label><input id="pcIn1" type="number" inputmode="decimal"></div><div><label id="pcL2">Y Value</label><input id="pcIn2" type="number" inputmode="decimal"></div></div>
-  <div class="box"><span id="pcResLabel">Result</span><span class="total" id="pcRes">-</span></div>
+  <div><label for="pcMode" data-lang="pMode">Mode</label><select id="pcMode" onchange="doPercentCalc()"><option value="1">X is what % of Y</option><option value="2">X% of Y</option><option value="3">% Increase/Decrease</option></select></div>
+  <div class="row"><div><label for="pcIn1">X Value</label><input id="pcIn1" type="number" inputmode="decimal" placeholder="0.00"></div><div><label for="pcIn2">Y Value</label><input id="pcIn2" type="number" inputmode="decimal" placeholder="0.00"></div></div>
+  <div class="box"><span data-lang="lRes">Result</span><span class="total" id="pcRes">0.00</span></div>
  </div>
+ <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
 
 <section id="converter" class="section">
- <div class="mini-clock"><div class="mc-card mc-h">12</div><div class="mc-sep">:</div><div class="mc-card mc-m">00</div><div class="mc-sep">:</div><div class="mc-card mc-s" style="color:var(--c-sec)">00</div><div class="mc-ampm">AM</div></div>
+ <div class="clock-inject"></div>
  <div class="app">
-  <div class="header-row"><h2 id="cvTitle">All-in-One Converter</h2>
+  <div class="header-row"><h2 data-lang="mConv">Unit Converter</h2>
    <div class="btn-group">
-    <button class="lang-btn voice-btn" onclick="readResult('converter'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsText('converter'); playClick()"><i class="ph-bold ph-copy"></i></button>
-    <button class="lang-btn share-btn" onclick="shareAsImage('converter')"><i class="ph-bold ph-image-square"></i></button>
-    <button class="lang-btn undo-btn" onclick="undoData('converter'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
-    <button class="lang-btn clear-btn" onclick="clearData('converter'); playTrash()"><i class="ph-bold ph-trash"></i></button>
+    <button class="lang-btn voice-btn" onclick="readResult('converter'); playClick()" aria-label="Read Result"><i class="ph-bold ph-speaker-high"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsText('converter'); playClick()" aria-label="Copy Text"><i class="ph-bold ph-copy"></i></button>
+    <button class="lang-btn share-btn" onclick="shareAsImage('converter')" aria-label="Share Image"><i class="ph-bold ph-image-square"></i></button>
+    <button class="lang-btn undo-btn" id="undo-converter" onclick="undoData('converter'); playClick()" aria-label="Undo"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+    <button class="lang-btn clear-btn" onclick="clearData('converter'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label id="cvLblCat">Category</label><select id="cvCat" onchange="updateCvUnits(); playClick()"><option value="len">Length</option><option value="wgt">Weight</option><option value="temp">Temperature</option><option value="time">Time</option><option value="speed">Speed</option><option value="data">Data</option><option value="power">Power</option><option value="land">Indian Land</option></select></div>
-  <div class="row"><div style="flex:1.5;"><label id="cvLblFrom">From</label><input id="cvIn" type="number" inputmode="decimal" placeholder="0"></div><div style="flex:1;"><label>&nbsp;</label><select id="cvUnitFrom" onchange="doConvert(); playClick()"></select></div></div>
-  <div class="row"><div style="flex:1.5;"><label id="cvLblTo">To</label><input id="cvOut" type="text" readonly style="background:transparent; font-weight:700; border:1px solid var(--glass-border);"></div><div style="flex:1;"><label>&nbsp;</label><select id="cvUnitTo" onchange="doConvert(); playClick()"></select></div></div>
+  <div><label for="cvCat" data-lang="cvCat">Category</label><select id="cvCat" onchange="updateCvUnits()"></select></div>
+  <div class="row"><div><label for="cvIn" data-lang="cFrom">From</label><input id="cvIn" type="number" inputmode="decimal" oninput="doConvert()" placeholder="0.00"></div><div><label for="cvUnitFrom">&nbsp;</label><select id="cvUnitFrom" onchange="doConvert()"></select></div></div>
+  <div class="row"><div><label for="cvOut" data-lang="cTo">To</label><input id="cvOut" type="text" readonly placeholder="0.00"></div><div><label for="cvUnitTo">&nbsp;</label><select id="cvUnitTo" onchange="doConvert()"></select></div></div>
  </div>
+ <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
 
 <section id="cash" class="section">
- <div class="mini-clock"><div class="mc-card mc-h">12</div><div class="mc-sep">:</div><div class="mc-card mc-m">00</div><div class="mc-sep">:</div><div class="mc-card mc-s" style="color:var(--c-sec)">00</div><div class="mc-ampm">AM</div></div>
+ <div class="clock-inject"></div>
  <div class="app">
-  <div class="header-row"><h2 id="cashTitle">Cash Counter</h2>
+  <div class="header-row"><h2 data-lang="mCash">Cash Counter</h2>
    <div class="btn-group">
-     <button class="lang-btn voice-btn" onclick="readResult('cash'); playClick()"><i class="ph-bold ph-speaker-high"></i></button>
-     <button class="lang-btn share-btn" onclick="shareAsText('cash'); playClick()"><i class="ph-bold ph-copy"></i></button>
-     <button class="lang-btn share-btn" onclick="shareAsImage('cash')"><i class="ph-bold ph-image-square"></i></button>
-     <button class="lang-btn undo-btn" onclick="undoData('cash'); playClick()"><i class="ph-bold ph-arrow-u-up-left"></i></button>
-     <button class="lang-btn clear-btn" onclick="clearCash(); playTrash()"><i class="ph-bold ph-trash"></i></button>
+     <button class="lang-btn voice-btn" onclick="readResult('cash'); playClick()" aria-label="Read Result"><i class="ph-bold ph-speaker-high"></i></button>
+     <button class="lang-btn share-btn" onclick="shareAsText('cash'); playClick()" aria-label="Copy Text"><i class="ph-bold ph-copy"></i></button>
+     <button class="lang-btn share-btn" onclick="shareAsImage('cash')" aria-label="Share Image"><i class="ph-bold ph-image-square"></i></button>
+     <button class="lang-btn undo-btn" id="undo-cash" onclick="undoData('cash'); playClick()" aria-label="Undo"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+     <button class="lang-btn clear-btn" onclick="clearCash(); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div id="cashList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div>
-  <div class="box" style="background: rgba(52, 199, 89, 0.1); border: 1px solid rgba(52, 199, 89, 0.2);">
-    <span id="lblCashTotal">Grand Total</span>
-    <span class="total" id="resCashTotal" style="font-size: 26px; color: #34C759;">₹ 0</span>
+  <div id="cashList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+  <div class="box" style="background: rgba(52, 199, 89, 0.1); margin-top: 15px;">
+    <span data-lang="lGTotal">Grand Total</span>
+    <span class="total" id="resCashTotal" style="font-size: 26px;">₹ 0.00</span>
   </div>
-  <div class="rate-info" id="cashInWords" style="text-align: center; margin-top: 8px; font-weight:600;">Zero Rupees Only</div>
  </div>
+ <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
 
-<div class="footer-credit">Made with ❤️ by Aditya</div>
-
 <script>
-/* CORE LOGIC */
+const dict = {
+    en: {
+        name: "Your Name", accent: "Accent Color", language: "Language", sound: "Sound", theme: "Theme",
+        menuTitle: "Menu", mHome: "Home", mPrice: "Price Calculator", mFuel: "Fuel Calculator", mAge: "Age Calculator",
+        mEmi: "EMI Calculator", mCur: "Currency Converter", mPerc: "Percentage Calculator", mConv: "Unit Converter", mCash: "Cash Counter", mGroc: "Grocery List",
+        qPrice: "Price", qFuel: "Fuel", qAge: "Age", qGroc: "Grocery", qEmi: "EMI", qCur: "Cur.", qPerc: "Perc.", qCash: "Cash",
+        lPrice: "Price per Kg", lWeight: "Weight", lUnit: "Unit", lTotal: "Total", lPay: "Pay Amount", lRes: "Result", uGram: "Gram", uKg: "Kg",
+        fDist: "Distance (km)", fMil: "Mileage (km/L)", fPrc: "Price (per L)", fSpd: "Speed (km/h)", fNeed: "Fuel Needed", fTime: "Est. Time",
+        aDob: "Date of Birth", aYrs: "Years", aMnts: "Months", aDys: "Days", aNext: "Next B'day", aDet: "Details", aBorn: "Born On", aZod: "Zodiac", aStats: "Life Stats", aTMnt: "Total Months", aTWk: "Total Weeks", aTDy: "Total Days",
+        eLoan: "Loan Amount", eRate: "Interest (%)", eYrs: "Years", eRes: "Monthly EMI", ePrin: "Principal", eInt: "Interest", eTInt: "Total Interest", eTPay: "Total Payment",
+        cAmt: "Amount", cFrom: "From", cTo: "To", pMode: "Mode", cvCat: "Category", lGTotal: "Grand Total",
+        gItem: "Item Name", gQty: "Quantity", gUnit: "Unit", gListTitle: "Current List"
+    },
+    bn: {
+        name: "আপনার নাম", accent: "অ্যাকসেন্ট কালার", language: "ভাষা", sound: "শব্দ", theme: "থিম",
+        menuTitle: "মেনু", mHome: "হোম", mPrice: "দাম ক্যালকুলেটর", mFuel: "তেল ক্যালকুলেটর", mAge: "বয়স ক্যালকুলেটর",
+        mEmi: "ইএমআই ক্যালকুলেটর", mCur: "টাকা রূপান্তর", mPerc: "শতকরা ক্যালকুলেটর", mConv: "ইউনিট কনভার্টার", mCash: "টাকা গণনা", mGroc: "মুদি তালিকা",
+        qPrice: "দাম", qFuel: "তেল", qAge: "বয়স", qGroc: "মুদি", qEmi: "EMI", qCur: "টাকা", qPerc: "%", qCash: "টাকা",
+        lPrice: "প্রতি কেজির দাম", lWeight: "ওজন", lUnit: "ইউনিট", lTotal: "মোট", lPay: "টাকা দিয়েছেন", lRes: "ফলাফল", uGram: "গ্রাম", uKg: "কেজি",
+        fDist: "দূরত্ব (কিমি)", fMil: "মাইলেজ (কিমি/লি)", fPrc: "দাম (প্রতি লি)", fSpd: "গতি (কিমি/ঘ)", fNeed: "প্রয়োজনীয় তেল", fTime: "আনুমানিক সময়",
+        aDob: "জন্ম তারিখ", aYrs: "বছর", aMnts: "মাস", aDys: "দিন", aNext: "পরবর্তী জন্মদিন", aDet: "বিস্তারিত", aBorn: "জন্মবার", aZod: "রাশি", aStats: "মোট জীবন পরিসংখ্যান", aTMnt: "মোট মাস", aTWk: "মোট সপ্তাহ", aTDy: "মোট দিন",
+        eLoan: "ঋণের পরিমাণ", eRate: "সুদ (%)", eYrs: "বছর", eRes: "মাসিক কিস্তি", ePrin: "আসল", eInt: "সুদ", eTInt: "মোট সুদ", eTPay: "মোট পরিশোধ",
+        cAmt: "পরিমাণ", cFrom: "থেকে", cTo: "পর্যন্ত", pMode: "মোড", cvCat: "ধরণ", lGTotal: "সর্বমোট টাকা",
+        gItem: "জিনিসের নাম", gQty: "পরিমাণ", gUnit: "একক", gListTitle: "বর্তমান তালিকা"
+    }
+};
 
 const historyStack = {};
+let isEn = localStorage.getItem('lang') !== 'bn';
+const $ = (id) => document.getElementById(id);
+let circles = {};
+let groceryItems = JSON.parse(localStorage.getItem('dlc_grocery') || '[]');
+let editIdx = -1;
 
-function saveHistory(secId) {
-    const sec = document.getElementById(secId);
-    const inputs = sec.querySelectorAll('input, select');
-    const state = {};
-    inputs.forEach(el => {
-        if(el.id) state[el.id] = el.value;
-    });
-    
-    if(!historyStack[secId]) historyStack[secId] = [];
-    historyStack[secId].push(JSON.stringify(state));
-    
-    // ম্যাক্সিমাম ২০টা স্টেপ মনে রাখবে
-    if(historyStack[secId].length > 20) historyStack[secId].shift();
+/* --- THEME LOGIC: STRICT SYSTEM FOLLOW --- */
+function syncTheme() {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (isDark) document.body.classList.add('dark');
+    else document.body.classList.remove('dark');
 }
-
-function undoData(secId) {
-    if(!historyStack[secId] || historyStack[secId].length === 0) return;
-    
-    // বর্তমান স্টেট বাদ দিয়ে আগের স্টেটটি নিন
-    const lastState = JSON.parse(historyStack[secId].pop());
-    
-    for (const id in lastState) {
-        const el = document.getElementById(id);
-        if(el) {
-            el.value = lastState[id];
-            localStorage.setItem('dlc_' + id, lastState[id]);
-        }
-    }
-    triggerCalc(secId);
-    playClick();
-}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncTheme);
+syncTheme();
 
 function changeAccent(color) {
     document.documentElement.style.setProperty('--accent', color);
     localStorage.setItem('dlc_accent', color);
+    document.querySelectorAll('.swatch').forEach(s => {
+        s.classList.remove('active');
+        const bg = s.style.backgroundColor;
+        if (s.classList.contains('custom-picker-wrap')) {
+            if(!['#007AFF','#AF52DE','#34C759','#FF9500','#FF3B30'].includes(color.toUpperCase())) s.classList.add('active');
+        } else if (rgbToHex(bg).toUpperCase() === color.toUpperCase()) {
+            s.classList.add('active');
+        }
+    });
+}
+function rgbToHex(rgb) {
+    if(!rgb) return "";
+    const res = rgb.match(/\d+/g);
+    return res ? "#" + res.map(x => parseInt(x).toString(16).padStart(2, '0')).join('') : "";
+}
+
+let audioCtx;
+let isMuted = localStorage.getItem('dlc_muted') === 'true';
+function initAudio() { 
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playClick() {
+    if (isMuted) return; initAudio();
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.value = 800; osc.type = 'sine';
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    if (navigator.vibrate) navigator.vibrate(10); 
+}
+function playTrash() {
+    if (isMuted) return; initAudio();
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.value = 150; osc.type = 'sawtooth';
+    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+}
+function toggleSound() { 
+    isMuted = !isMuted; localStorage.setItem('dlc_muted', isMuted); 
+    const btn = document.getElementById('settingSoundBtn');
+    if(btn) btn.innerHTML = isMuted ? '<i class="ph-bold ph-speaker-slash"></i> Off' : '<i class="ph-bold ph-speaker-high"></i> On';
+}
+
+function saveUserName() { localStorage.setItem('dlc_username', $('userNameInput').value); updateClocks(); }
+
+function toggleSettings() { 
+    const modal = $('settingsModal');
+    if(!modal) return;
+    const isActive = modal.classList.contains('active');
+    modal.classList.toggle('active'); 
+    const setBtn = $('setBtn');
+    if(!isActive) setBtn.classList.add('active'); else setBtn.classList.remove('active');
+    $('modalOverlay').style.display = !isActive ? 'block' : 'none'; 
+}
+
+function toggleGlobalLang() { 
+    isEn = !isEn; localStorage.setItem('lang', isEn ? 'en' : 'bn'); 
+    renderAllLangs(); updateClocks(); getMoonPhase(); updateSunMoonPos(); renderGrocery();
+    document.querySelectorAll('.section').forEach(s => triggerCalc(s.id));
+}
+
+function toggleMenu(){ document.body.classList.toggle('menu-open'); }
+function showSection(id){ 
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
+    const el=$(id); if(el) el.classList.add('active'); 
+    $('homeNavBtn').style.display = (id === 'home') ? 'none' : 'flex'; 
+    el.scrollTop = 0;
+}
+function onMenuClick(id){ showSection(id); toggleMenu(); }
+function toBn(num) { 
+  if(num === undefined || num === null) return num; 
+  let s = num.toString();
+  if(!isEn) return s.split('').map(d => "০১২৩৪৫৬৭৮৯"[d] || d).join(''); 
+  return s;
+}
+
+/* --- GROCERY LIST LOGIC --- */
+function renderGrocery() {
+  const container = $('groceryDisplay');
+  container.innerHTML = "";
+  groceryItems.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'grocery-item';
+    div.innerHTML = `
+      <div class="grocery-info">
+        <span class="grocery-name">${item.name}</span>
+        <span class="grocery-qty">${toBn(item.qty)} ${item.unit}</span>
+      </div>
+      <div class="grocery-actions">
+        <button class="action-btn edit-btn" onclick="editGroceryItem(${index}); playClick()" aria-label="Edit"><i class="ph-bold ph-pencil-simple"></i></button>
+        <button class="action-btn del-btn" onclick="deleteGroceryItem(${index}); playTrash()" aria-label="Delete"><i class="ph-bold ph-trash"></i></button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function saveGroceryItem() {
+  const name = $('gItemName').value;
+  const qty = $('gItemQty').value;
+  const unit = $('gItemUnit').value;
+  if (!name || !qty) return;
+
+  saveHistory('grocery');
+
+  if (editIdx > -1) {
+    groceryItems[editIdx] = { name, qty, unit };
+    editIdx = -1;
+    $('gAddBtn').textContent = isEn ? "Add Item" : "যোগ করুন";
+  } else {
+    groceryItems.push({ name, qty, unit });
+  }
+  
+  localStorage.setItem('dlc_grocery', JSON.stringify(groceryItems));
+  $('gItemName').value = ""; $('gItemQty').value = "";
+  renderGrocery();
+  updateUndoState('grocery');
+}
+
+function deleteGroceryItem(index) {
+  saveHistory('grocery');
+  groceryItems.splice(index, 1);
+  localStorage.setItem('dlc_grocery', JSON.stringify(groceryItems));
+  renderGrocery();
+  updateUndoState('grocery');
+}
+
+function editGroceryItem(index) {
+  const item = groceryItems[index];
+  $('gItemName').value = item.name;
+  $('gItemQty').value = item.qty;
+  $('gItemUnit').value = item.unit;
+  editIdx = index;
+  $('gAddBtn').textContent = isEn ? "Update Item" : "আপডেট করুন";
+}
+
+function clearGrocery() {
+  if (groceryItems.length === 0) return;
+  saveHistory('grocery');
+  groceryItems = [];
+  localStorage.setItem('dlc_grocery', JSON.stringify(groceryItems));
+  renderGrocery();
+  updateUndoState('grocery');
+}
+
+/* --- ADDED: Export Functions for Grocery List --- */
+
+function updateGroceryDate() {
+    const d = new Date();
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const dateStr = d.toLocaleDateString(isEn ? 'en-US' : 'bn-IN', options);
+    const label = isEn ? "Grocery List – " : "মুদি তালিকা – ";
+    $('grocery-date').textContent = label + dateStr;
+}
+
+function exportGroceryPDF() {
+    if (groceryItems.length === 0) {
+        alert(isEn ? "Your grocery list is empty!" : "আপনার মুদি তালিকা খালি!");
+        return;
+    }
+    const element = document.getElementById('groceryDisplay');
+    const d = new Date().toISOString().split('T')[0];
+    const opt = {
+        margin: 10,
+        filename: `Grocery_List_${d}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Create a temporary container for PDF generation to include title
+    const worker = html2pdf().set(opt).from(`
+        <div style="font-family: sans-serif; padding: 20px; color: #000;">
+            <h1 style="color: #007AFF;">My Grocery List</h1>
+            <p style="color: #666; margin-bottom: 20px;">Date: ${new Date().toDateString()}</p>
+            <hr style="border: 0.5px solid #eee;">
+            <div style="margin-top: 20px;">
+                ${groceryItems.map(it => `
+                    <div style="padding: 10px 0; border-bottom: 0.5px solid #eee; display: flex; justify-content: space-between;">
+                        <strong>${it.name}</strong>
+                        <span>${it.qty} ${it.unit}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `).save();
+}
+
+function exportGroceryExcel() {
+    if (groceryItems.length === 0) {
+        alert(isEn ? "Your grocery list is empty!" : "আপনার মুদি তালিকা খালি!");
+        return;
+    }
+    const d = new Date().toISOString().split('T')[0];
+    const data = groceryItems.map(it => ({
+        "Item Name": it.name,
+        "Quantity": it.qty,
+        "Unit": it.unit,
+        "Status": "To Buy"
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Grocery List");
+    XLSX.writeFile(wb, `Grocery_List_${d}.xlsx`);
+}
+
+/* --- CALCULATIONS LOGIC --- */
+
+function calc(){
+    let p=+$('price').value||0, w=+$('weight').value||0, a=+$('amount').value||0;
+    if($('unit').value==='g')w/=1000;
+    $('total').textContent="₹ "+(p*w).toFixed(2);
+    if(p > 0) {
+        let resVal = (a/p)*1000;
+        $('result').textContent= toBn(resVal.toFixed(2)) + (isEn ? " g" : " গ্রাম");
+    } else {
+        $('result').textContent = toBn((0).toFixed(2)) + (isEn ? " g" : " গ্রাম");
+    }
+}
+
+function doEmiCalc() {
+    const P=+$('emiPrincipal').value, R=+$('emiRate').value, N=+$('emiYears').value;
+    if(P && N) {
+        let emi;
+        if (R > 0) {
+            const r=R/12/100, n=N*12;
+            emi=(P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+        } else {
+            emi = P / (N * 12); 
+        }
+        $('resEmi').textContent=toBn(emi.toFixed(2));
+        const totalPay = emi * N * 12;
+        $('resTotalPay').textContent=toBn(totalPay.toFixed(2));
+        $('resTotalInt').textContent=toBn((totalPay - P).toFixed(2));
+        $('emiBarInt').style.width = ((totalPay - P) / totalPay * 100) + "%";
+    }
+}
+
+function doAgeCalc() {
+    const val = $('dobInput').value; if(!val) { $('funContainer').style.display = 'none'; return; }
+    const b = new Date(val), n = new Date();
+    if(isNaN(b.getTime())) return;
+    if(b > n) { 
+        $('resYears').textContent=toBn((0).toFixed(2)); $('resMonths').textContent=toBn((0).toFixed(2)); $('resDays').textContent=toBn((0).toFixed(2));
+        $('funContainer').style.display = 'none'; return;
+    }
+    let y = n.getFullYear()-b.getFullYear(), m = n.getMonth()-b.getMonth(), d = n.getDate()-b.getDate();
+    if(d<0){ m--; d+=new Date(n.getFullYear(), n.getMonth(), 0).getDate(); }
+    if(m<0){ y--; m+=12; }
+    $('resYears').textContent=toBn(y.toFixed(2)); $('resMonths').textContent=toBn(m.toFixed(2)); $('resDays').textContent=toBn(d.toFixed(2));
+    
+    let next = new Date(n.getFullYear(), b.getMonth(), b.getDate());
+    if (next < n) next.setFullYear(n.getFullYear() + 1);
+    let diff = next - n;
+    let daysToNext = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    $('resNextBday').textContent = toBn(daysToNext.toFixed(2)) + (isEn ? " days" : " দিন");
+    $('funContainer').style.display = 'block';
+    $('resTotDays').textContent = toBn(Math.floor((n-b)/(1000*60*60*24)).toFixed(2));
+    $('resTotMonths').textContent = toBn((y * 12 + m).toFixed(2));
+    $('resTotWeeks').textContent = toBn((Math.floor((n-b)/(1000*60*60*24*7))).toFixed(2));
+    const daysArr = isEn ? ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"] : ["রবিবার","সোমবার","মঙ্গলবার","বুধবার","বৃহস্পতিবার","শুক্রবার","শনিবার"];
+    $('resBornDay').textContent = daysArr[b.getDay()];
+    
+    const zodiacs = [
+      { n: "Capricorn", bn: "মকর", d: [1, 20] }, { n: "Aquarius", bn: "কুম্ভ", d: [2, 18] },
+      { n: "Pisces", bn: "মীন", d: [3, 20] }, { n: "Aries", bn: "মেষ", d: [4, 19] },
+      { n: "Taurus", bn: "বৃষ", d: [5, 20] }, { n: "Gemini", bn: "মিথুন", d: [6, 20] },
+      { n: "Cancer", bn: "কর্কট", d: [7, 22] }, { n: "Leo", bn: "সিংহ", d: [8, 22] },
+      { n: "Virgo", bn: "কন্যা", d: [9, 22] }, { n: "Libra", bn: "তুলা", d: [10, 22] },
+      { n: "Scorpio", bn: "বৃশ্চিক", d: [11, 21] }, { n: "Sagittarius", bn: "ধনু", d: [12, 21] },
+      { n: "Capricorn", bn: "মকর", d: [12, 31] }
+    ];
+    let zodiac = zodiacs.find(z => (b.getMonth() + 1 < z.d[0]) || (b.getMonth() + 1 === z.d[0] && b.getDate() <= z.d[1]));
+    $('resZodiac').textContent = isEn ? zodiac.n : zodiac.bn;
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    const accent = localStorage.getItem('dlc_accent') || '#007AFF';
+    changeAccent(accent);
+    
+    const savedName = localStorage.getItem('dlc_username');
+    if(savedName) $('userNameInput').value = savedName;
+
+    circles = {
+        hour: document.querySelector('.hour'),
+        min: document.querySelector('.min'),
+        sec: document.querySelector('.sec')
+    };
+    Object.values(circles).forEach(c => {
+        if (c) {
+            const r = c.r.baseVal.value;
+            c.len = 2 * Math.PI * r;
+            c.style.strokeDasharray = c.len;
+        }
+    });
+
+    const temp = $('miniClockTemp')?.content;
+    if(temp) { document.querySelectorAll('.clock-inject').forEach(div => { if(div.children.length === 0) div.appendChild(temp.cloneNode(true)); }); }
+    
+    initCash(); initCurSelects(); updateCvUnits(); getMoonPhase(); renderAllLangs(); updateSunMoonPos(); renderGrocery();
+    
+    /* ADDED: Initialize Date Display on Load */
+    updateGroceryDate();
+
+    const menuList = $('menuList'); if(menuList) Sortable.create(menuList, { animation: 150 });
+    
+    document.querySelectorAll('.section').forEach(sec => { if(sec.id !== 'home') saveHistory(sec.id); });
+
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', () => { 
+            const sid = el.closest('.section')?.id;
+            if(sid) { if(sid !== 'grocery') saveHistory(sid); triggerCalc(sid); }
+        });
+        el.addEventListener('change', () => { 
+            const sid = el.closest('.section')?.id;
+            if(sid) { if(sid !== 'grocery') saveHistory(sid); triggerCalc(sid); }
+        });
+    });
+
+    setTimeout(() => { const splash = $('welcomeSplash'); if(splash) splash.classList.add('fade-out'); }, 2000);
+});
+
+function getMoonPhase() {
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
+    let yy = y, mm = m; if (mm < 3) { yy--; mm += 12; } mm++;
+    let jd = 365.25 * yy + 30.6 * mm + d - 694039.09; jd /= 29.530588853; 
+    let b = Math.round((jd - parseInt(jd)) * 8); if (b >= 8) b = 0;
+    const phases = [
+        { en: "New Moon", bn: "অমাবস্যা", icon: "🌑" }, { en: "Waxing Crescent", bn: "শুক্লপক্ষ (কলা)", icon: "🌒" },
+        { en: "First Quarter", bn: "শুক্লপক্ষ (অর্ধচন্দ্র)", icon: "🌓" }, { en: "Waxing Gibbous", bn: "শুক্লপক্ষ (কুব্জচন্দ্র)", icon: "🌔" },
+        { en: "Full Moon", bn: "পূর্ণিমা", icon: "🌕" }, { en: "Waning Gibbous", bn: "কৃষ্ণপক্ষ (কুব্জচন্দ্র)", icon: "🌖" },
+        { en: "Last Quarter", bn: "কৃষ্ণপক্ষ (অর্ধচন্দ্র)", icon: "🌗" }, { en: "Waning Crescent", bn: "কৃষ্ণপক্ষ (কলা)", icon: "🌘" }
+    ];
+    const iconEl = $('moonIcon'), nameEl = $('moonName');
+    if(iconEl) iconEl.textContent = phases[b].icon;
+    if(nameEl) nameEl.textContent = phases[b].bn; 
+}
+
+/* --- BENGALI CALENDAR --- */
+function getBengaliCalendarDate(date) {
+    const months = ["বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ", "পৌষ", "মাঘ", "ফালগুন", "চৈত্র"];
+    let gDay = date.getDate(), gMonth = date.getMonth(), gYear = date.getFullYear();
+    let bnYear = gYear - 593;
+    if (gMonth < 3 || (gMonth === 3 && gDay < 15)) bnYear--;
+    const wbStarts = [
+        {m:3, d:15}, {m:4, d:16}, {m:5, d:16}, {m:6, d:17}, {m:7, d:17}, {m:8, d:17},
+        {m:9, d:17}, {m:10, d:16}, {m:11, d:16}, {m:0, d:15}, {m:1, d:14}, {m:2, d:15}
+    ];
+    let bnMonthIdx = 0, bnDay = 0;
+    for(let i = 0; i < 12; i++) {
+        let currentMonthStart = new Date(gYear, wbStarts[i].m, wbStarts[i].d);
+        let nextMonthIdx = (i + 1) % 12;
+        let nYear = gYear + (i >= 9 && nextMonthIdx < 9 ? 1 : 0);
+        let nextMonthStart = new Date(nYear, wbStarts[nextMonthIdx].m, wbStarts[nextMonthIdx].d);
+        if(date >= currentMonthStart || i === 11) {
+            if (i === 11 && date < new Date(gYear, wbStarts[0].m, wbStarts[0].d)) {
+                bnMonthIdx = 11;
+                let prevChaitraStart = new Date(gYear - 1, wbStarts[11].m, wbStarts[11].d);
+                bnDay = Math.floor((date - prevChaitraStart) / 86400000) + 1;
+                break;
+            }
+            if (date < nextMonthStart || i === 8) {
+                bnMonthIdx = i;
+                bnDay = Math.floor((date - currentMonthStart) / 86400000) + 1;
+                break;
+            }
+        }
+    }
+    return `${toBn(bnDay)} ${months[bnMonthIdx]}, ${toBn(bnYear)}`;
+}
+
+function updateSunMoonPos() {
+    const now = new Date();
+    const hours = now.getHours();
+    const isDay = hours >= 6 && hours < 18;
+    const titleEl = $('astroTitle'), altEl = $('astroAlt'), dirEl = $('astroDir');
+    if(!titleEl) return;
+    titleEl.textContent = isDay ? "সূর্যের অবস্থান" : "চাঁদের অবস্থান";
+    const totalMinutes = hours * 60 + now.getMinutes();
+    let altitude = 0, direction = "উত্তর";
+    if (isDay) {
+        altitude = Math.sin((totalMinutes - 360) / 720 * Math.PI) * 90;
+        direction = totalMinutes < 720 ? "পূর্ব" : "পশ্চিম";
+    } else {
+        let mMin = totalMinutes < 360 ? totalMinutes + 1440 : totalMinutes;
+        altitude = Math.sin((mMin - 1080) / 720 * Math.PI) * 80;
+        direction = mMin < 1440 ? "পূর্ব" : "পশ্চিম";
+    }
+    altEl.textContent = `উচ্চতা: ${toBn(Math.abs(altitude).toFixed(2))}°`;
+    dirEl.textContent = `দিক: ${direction}`;
+}
+
+let lastSec = -1;
+function updateClocks(){
+    const d=new Date(); const hRaw = d.getHours();
+    const greetEl = $('greeting');
+    if(greetEl) {
+        const greet = isEn ? (hRaw<12?"Good Morning":hRaw<17?"Good Afternoon":"Good Evening") : (hRaw<12?"শুভ সকাল":hRaw<17?"শুভ দুপুর":"শুভ সন্ধ্যা");
+        const uName = localStorage.getItem('dlc_username');
+        greetEl.textContent = uName ? `${greet}, ${uName}` : greet;
+    }
+    const h=hRaw%12, m=d.getMinutes(), s=d.getSeconds();
+    if(circles.sec) circles.sec.style.strokeDashoffset = circles.sec.len - (s/60)*circles.sec.len;
+    if(circles.min) circles.min.style.strokeDashoffset = circles.min.len - ((m+s/60)/60)*circles.min.len;
+    if(circles.hour) circles.hour.style.strokeDashoffset = circles.hour.len - ((h+m/60)/12)*circles.hour.len;
+    
+    const timeEl = $('time'), dateEl = $('date'), bnCalEl = $('bnCalendar');
+    if(timeEl) timeEl.textContent = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    if(dateEl) dateEl.textContent = d.toLocaleDateString(isEn?'en-IN':'bn-IN',{weekday:'long',day:'numeric',month:'short'});
+    if(bnCalEl) bnCalEl.textContent = getBengaliCalendarDate(d);
+    
+    document.querySelectorAll('.mini-clock').forEach(mc => {
+        const mcH = mc.querySelector('.mc-h'), mcM = mc.querySelector('.mc-m'), mcS = mc.querySelector('.mc-s'), mcAmPm = mc.querySelector('.mc-ampm');
+        if(mcH) mcH.textContent = (hRaw%12||12).toString().padStart(2,'0');
+        if(mcM) mcM.textContent = m.toString().padStart(2,'0');
+        if(mcS && s !== lastSec) { mcS.textContent = s.toString().padStart(2,'0'); mcS.classList.remove('flip'); void mcS.offsetWidth; mcS.classList.add('flip'); }
+        if(mcAmPm) mcAmPm.textContent = hRaw>=12?"PM":"AM";
+    });
+    if (s % 30 === 0) updateSunMoonPos();
+    lastSec = s;
+}
+setInterval(updateClocks, 1000);
+
+function triggerCalc(secId) {
+    if(secId==='rate') calc(); if(secId==='fuel') doFuelCalc(); if(secId==='age') doAgeCalc(); if(secId==='emi') doEmiCalc(); if(secId==='percent') doPercentCalc(); if(secId==='converter') doConvert(); if(secId==='currency') convertCurrency(); if(secId==='cash') doCash();
+    updateUndoState(secId);
+}
+function renderAllLangs() {
+    const currentDict = isEn ? dict.en : dict.bn;
+    document.querySelectorAll('[data-lang]').forEach(el => {
+        const key = el.getAttribute('data-lang'); if(currentDict[key]) el.textContent = currentDict[key];
+    });
+    $('settingLangBtn').innerHTML = isEn ? '<i class="ph-bold ph-globe"></i> EN' : '<i class="ph-bold ph-globe"></i> BN';
+    if(editIdx === -1) { $('gAddBtn').textContent = isEn ? "Add Item" : "যোগ করুন"; }
+    /* ADDED: Update Date format on lang toggle */
+    updateGroceryDate();
+}
+
+function doFuelCalc(){
+    const dist=+$('fuelDist').value, mil=+$('fuelMil').value, prc=+$('fuelPrice').value, spd=+$('fuelSpeed').value;
+    if(dist && mil > 0) {
+        const fuel = dist/mil;
+        $('resFCost').textContent= toBn((fuel*prc).toFixed(2));
+        $('resFFuel').textContent= toBn(fuel.toFixed(2)) + (isEn ? " L" : " লি.");
+        if(spd > 0) {
+          const totalHours = dist/spd;
+          const h = Math.floor(totalHours);
+          const m = Math.round((totalHours - h) * 60);
+          $('resFTime').textContent = toBn(h.toFixed(2)) + "h " + toBn(m.toFixed(2)) + "m";
+        }
+        else $('resFTime').textContent = toBn((0).toFixed(2)) + "m";
+    }
+}
+async function convertCurrency(){
+    const f=$('curFrom').value, t=$('curTo').value, a=+$('curAmount').value;
+    const resEl = $('curResult'), infoEl = $('curRateInfo');
+    if(!resEl || a <= 0) return;
+    if(f === t) { resEl.textContent = f + " " + a.toFixed(2); infoEl.textContent = `1 ${f} = 1.00 ${t}`; return; }
+    try {
+        const r = await fetch(`https://api.exchangerate-api.com/v4/latest/${f}`);
+        const d = await r.json();
+        const rate = d.rates[t];
+        resEl.textContent = t + " " + (a * rate).toFixed(2);
+        infoEl.textContent = `1 ${f} = ${toBn(rate.toFixed(2))} ${t}`;
+    } catch(e) { resEl.textContent = isEn ? "Offline" : "অফলাইন"; }
+}
+function initCurSelects(){
+    const cf=$('curFrom'), ct=$('curTo'); if(!cf) return;
+    const codes = [{c:"USD", n:"US Dollar"}, {c:"INR", n:"Indian Rupee"}, {c:"BDT", n:"Bangladeshi Taka"}, {c:"EUR", n:"Euro"}, {c:"GBP", n:"British Pound"}, {c:"JPY", n:"Japanese Yen"}, {c:"AUD", n:"Australian Dollar"}, {c:"CAD", n:"Canadian Dollar"}, {c:"CHF", n:"Swiss Franc"}, {c:"CNY", n:"Chinese Yuan"}, {c:"RUB", n:"Russian Ruble"}, {c:"AED", n:"Emirati Dirham"}, {c:"SAR", n:"Saudi Riyal"}, {c:"PKR", n:"Pakistani Rupee"}, {c:"SGD", n:"Singapore Dollar"}];
+    codes.forEach(cur => { cf.add(new Option(`${cur.c} - ${cur.n}`, cur.c)); ct.add(new Option(`${cur.c} - ${cur.n}`, cur.c)); });
+    cf.value="USD"; ct.value="INR";
+}
+function swapCurrency(){ const f=$('curFrom'), t=$('curTo'); const v=f.value; f.value=t.value; t.value=v; convertCurrency(); }
+
+const cvData = {
+    len: { en: "Length", bn: "দৈর্ঘ্য", units: { m: 1, km: 1000, cm: 0.01, mm: 0.001, mi: 1609.34, yd: 0.9144, ft: 0.3048, in: 0.0254 }, names: { m: "Meter", km: "KM", cm: "CM", mm: "MM", mi: "Mile", yd: "Yard", ft: "Feet", in: "Inch" }},
+    wgt: { en: "Weight", bn: "ওজন", units: { kg: 1, g: 0.001, mg: 0.000001, lb: 0.453592, oz: 0.0283495 }, names: { kg: "KG", g: "Gram", mg: "MG", lb: "Pound", oz: "Ounce" }},
+    vol: { en: "Volume", bn: "আয়তন", units: { l: 1, ml: 0.001, gal: 3.78541, qt: 0.946353, cup: 0.236588 }, names: { l: "Liter", ml: "ML", gal: "Gallon", qt: "Quart", cup: "Cup" }},
+    temp: { en: "Temp", bn: "তাপমাত্রা", type: "special", units: { c: "C", f: "F", k: "K" }, names: { c: "Celsius", f: "Fahrenheit", k: "Kelvin" }},
+    area: { en: "Area", bn: "ক্ষেত্রফল", units: { sqm: 1, sqkm: 1000000, acre: 4046.86, hectare: 10000, sqft: 0.092903 }, names: { sqm: "Sq Meter", sqkm: "Sq KM", acre: "Acre", hectare: "Hectare", sqft: "Sq Feet" }}
+};
+function updateCvUnits() {
+    const catSelect = $('cvCat'); if(!catSelect) return;
+    if(!catSelect.options.length) Object.keys(cvData).forEach(k => catSelect.add(new Option(isEn?cvData[k].en:cvData[k].bn, k)));
+    const cat = catSelect.value, uf = $('cvUnitFrom'), ut = $('cvUnitTo');
+    uf.innerHTML = ""; ut.innerHTML = "";
+    Object.keys(cvData[cat].units).forEach(u => { uf.add(new Option(cvData[cat].names[u], u)); ut.add(new Option(cvData[cat].names[u], u)); });
+}
+function doConvert() {
+    const cat=$('cvCat').value, val=+$('cvIn').value, u1=$('cvUnitFrom').value, u2=$('cvUnitTo').value;
+    let res = 0;
+    if(cvData[cat].type === "special") {
+      if(u1 === 'c' && u2 === 'f') res = (val * 9/5) + 32;
+      else if(u1 === 'f' && u2 === 'c') res = (val - 32) * 5/9;
+      else if(u1 === 'c' && u2 === 'k') res = val + 273.15;
+      else if(u1 === 'k' && u2 === 'c') res = val - 273.15;
+      else if(u1 === 'f' && u2 === 'k') res = (val - 32) * 5/9 + 273.15;
+      else if(u1 === 'k' && u2 === 'f') res = (val - 273.15) * 9/5 + 32;
+      else res = val;
+    } else {
+      res = (val * cvData[cat].units[u1]) / cvData[cat].units[u2];
+    }
+    $('cvOut').value = toBn(res.toFixed(2));
+}
+function doPercentCalc(){
+    const m=$('pcMode').value, v1=+$('pcIn1').value, v2=+$('pcIn2').value;
+    let r = 0;
+    if(m === '1' && v2 !== 0) r = ((v1/v2)*100).toFixed(2) + "%";
+    else if(m === '2') r = ((v1/100)*v2).toFixed(2);
+    else if(m === '3' && v1 !== 0) r = (((v2-v1)/v1)*100).toFixed(2) + "%";
+    $('pcRes').textContent = toBn(r);
+}
+const notes = [500, 200, 100, 50, 20, 10, 5, 2, 1];
+function initCash() {
+    const list = $('cashList'); if(!list) return;
+    list.innerHTML = "";
+    notes.forEach(n => {
+        const div = document.createElement('div'); div.className = 'info-row';
+        div.innerHTML = `<span>₹${toBn(n)}</span><input type="number" id="n${n}" inputmode="numeric" oninput="doCash()" style="width:70px; height:32px; text-align:center;" aria-label="${n} Rupee Notes">`;
+        list.appendChild(div);
+    });
+}
+function doCash() {
+    let total = 0; notes.forEach(n => { const el = $('n'+n); total += (Math.floor(+(el?.value||0)) || 0) * n; });
+    $('resCashTotal').textContent = "₹ " + toBn(total.toFixed(2));
+}
+function clearData(secId) { 
+    document.querySelectorAll(`#${secId} input`).forEach(i=>i.value=""); 
+    saveHistory(secId);
+    triggerCalc(secId); 
+}
+function clearCash() { notes.forEach(n=>{ const el = $('n'+n); if(el) el.value=""; }); doCash(); }
+
+/* --- UNIVERSAL UNDO LOGIC --- */
+function saveHistory(secId) {
+    const sec = $(secId); if(!sec) return;
+    let state = {};
+    if (secId === 'grocery') {
+      state = JSON.stringify(groceryItems);
+    } else {
+      sec.querySelectorAll('input, select').forEach(el => { if(el.id) state[el.id] = el.value; });
+      state = JSON.stringify(state);
+    }
+    if(!historyStack[secId]) historyStack[secId] = [];
+    if(historyStack[secId].length === 0 || state !== historyStack[secId][historyStack[secId].length - 1]) {
+        historyStack[secId].push(state);
+        if(historyStack[secId].length > 50) historyStack[secId].shift(); 
+    }
+    updateUndoState(secId);
+}
+function updateUndoState(secId) {
+    const btn = $(`undo-${secId}`);
+    if(btn) btn.disabled = (!historyStack[secId] || historyStack[secId].length < 2);
+}
+function undoData(secId) {
+    if(!historyStack[secId] || historyStack[secId].length < 2) return;
+    historyStack[secId].pop(); 
+    const lastStateRaw = historyStack[secId][historyStack[secId].length - 1];
+    if (secId === 'grocery') {
+      groceryItems = JSON.parse(lastStateRaw);
+      localStorage.setItem('dlc_grocery', lastStateRaw);
+      renderGrocery();
+    } else {
+      const lastState = JSON.parse(lastStateRaw);
+      for (const id in lastState) { const el = $(id); if(el) el.value = lastState[id]; }
+      triggerCalc(secId); 
+    }
+}
+
+function readResult(secId) {
+    if(window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+    const section = $(secId); if(!section) return;
+    const totals = Array.from(section.querySelectorAll('.total')).map(t => t.innerText).filter(txt => txt && !txt.includes("₹ 0") && txt !== "0" && txt !== "...");
+    if (totals.length === 0) return;
+    const text = isEn ? `The results are: ${totals.join(', ')}` : `ফলাফল হলো: ${totals.join(', ')}`;
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = isEn ? 'en-IN' : 'bn-IN';
+    window.speechSynthesis.speak(msg);
+}
+
+function shareAsText(secId) {
+    const section = $(secId); if(!section) return;
+    const title = section.querySelector('h2').innerText;
+    let results = "";
+    if(secId === 'grocery') {
+      results = groceryItems.map(it => `- ${it.name}: ${it.qty} ${it.unit}`).join('\n');
+    } else {
+      results = Array.from(section.querySelectorAll('.box, .info-row')).map(b => {
+          const label = (b.querySelector('span:first-child')?.innerText || b.querySelector('.info-label')?.innerText || "").trim();
+          const val = (b.querySelector('.total')?.innerText || b.querySelector('.info-val')?.innerText || "").trim();
+          return (label && val) ? `${label}: ${val}` : "";
+      }).filter(x => x).join('\n');
+    }
+    const fullText = `${title}\n---\n${results}\n\nShared via Daily Life Calculator`;
+    if(navigator.share) navigator.share({ title: title, text: fullText });
+    else navigator.clipboard.writeText(fullText).then(() => alert(isEn ? "Copied!" : "কপি করা হয়েছে!"));
 }
 
 async function shareAsImage(secId) {
-    playClick();
-    const section = document.querySelector(`#${secId} .app`);
-    const options = { backgroundColor: document.body.classList.contains('dark') ? '#1e1e1e' : '#f2f2f7', scale: 2, borderRadius: 18, useCORS: true, logging: false };
+    const section = $(secId).querySelector('.app'); if(!section) return;
     try {
-        const canvas = await html2canvas(section, options);
+        const canvas = await html2canvas(section, { backgroundColor: null, scale: 2 });
         canvas.toBlob(async (blob) => {
-            const file = new File([blob], 'calculation_result.png', { type: 'image/png' });
+            if (!blob) return;
+            const file = new File([blob], `${secId}_result.png`, { type: 'image/png' });
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({ files: [file], title: 'Calculator Result', text: 'Daily Life App থেকে শেয়ার করা হয়েছে।' });
+                await navigator.share({ files: [file], title: 'Calculator Result' });
             } else {
-                const link = document.createElement('a'); link.download = 'result.png'; link.href = URL.createObjectURL(blob); link.click();
+                alert(isEn ? "Share API not supported." : "আপনার ডিভাইসে শেয়ার সম্ভব নয়।");
             }
         });
-    } catch (err) { console.error("Image generation failed", err); }
+    } catch(e) { console.error(e); }
 }
-
-async function shareAsText(secId) {
-    let resultText = "";
-    const title = document.getElementById(secId + 'Title').innerText;
-    if (secId === 'rate') { const t = document.getElementById('total').innerText; const r = document.getElementById('result').innerText; resultText = isEn ? `${title}\nTotal Price: ${t}\nYou will get: ${r}` : `${title}\nমোট দাম: ${t}\nআপনি পাবেন: ${r}`;
-    } else if (secId === 'fuel') { const cost = document.getElementById('resFCost').innerText; const fuel = document.getElementById('resFFuel').innerText; resultText = isEn ? `${title}\nTotal Cost: ₹${cost}\nFuel Needed: ${fuel}` : `${title}\nমোট খরচ: ₹${cost}\nতেল লাগবে: ${fuel}`;
-    } else if (secId === 'age') { const y = document.getElementById('resYears').innerText; const m = document.getElementById('resMonths').innerText; const d = document.getElementById('resDays').innerText; resultText = isEn ? `${title}\nYour Age: ${y} Years, ${m} Months, ${d} Days` : `${title}\nআপনার বয়স: ${y} বছর, ${m} মাস, এবং ${d} দিন`;
-    } else if (secId === 'emi') { const emi = document.getElementById('resEmi').innerText; const total = document.getElementById('resTotalPay').innerText; resultText = isEn ? `${title}\nMonthly EMI: ${emi}\nTotal Payment: ${total}` : `${title}\nমাসিক কিস্তি: ${emi}\nসর্বমোট পরিশোধ: ${total}`;
-    } else if (secId === 'currency') { const res = document.getElementById('curResult').innerText; resultText = isEn ? `${title}\nConverted Amount: ${res}` : `${title}\nরূপান্তরিত পরিমাণ: ${res}`;
-    } else if (secId === 'percent') { const res = document.getElementById('pcRes').innerText; resultText = isEn ? `${title}\nResult: ${res}` : `${title}\nফলাফল: ${res}`;
-    } else if (secId === 'converter') { const res = document.getElementById('cvOut').value; const unit = document.getElementById('cvUnitTo').value; resultText = isEn ? `${title}\nResult: ${res} ${unit}` : `${title}\nফলাফল: ${res} ${unit}`;
-    } else if (secId === 'cash') { const total = document.getElementById('resCashTotal').innerText; const words = document.getElementById('cashInWords').innerText; resultText = isEn ? `${title}\nTotal Cash: ${total}\n${words}` : `${title}\nমোট নগদ: ${total}\n${words}`; }
-    const finalMsg = `${resultText}\n\nShared via Daily Life Calculator App 📱`;
-    if (navigator.share) { try { await navigator.share({ title: title, text: finalMsg }); } catch (err) { console.log("Sharing cancelled"); } } else { navigator.clipboard.writeText(finalMsg); alert(isEn ? "Result copied to clipboard!" : "ফলাফল কপি করা হয়েছে!"); }
-}
-
-function getBengaliCalendarDate(date) {
-    const months = ["বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ", "পৌষ", "মাঘ", "ফাল্গুন", "চৈত্র"];
-    const numbers = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
-    let day = date.getDate(); let month = date.getMonth(); let year = date.getFullYear();
-    let bnYear = year - 593; let bnMonth, bnDay;
-    if (month === 0) { if (day >= 15) { bnDay = day - 14; bnMonth = "মাঘ"; bnYear = year - 594; } else { bnDay = day + 16; bnMonth = "পৌষ"; bnYear = year - 594; }
-    } else if (month === 1) { if (day >= 14) { bnDay = day - 13; bnMonth = "ফাল্গুন"; bnYear = year - 594; } else { bnDay = day + 17; bnMonth = "মাঘ"; bnYear = year - 594; }
-    } else { bnDay = day; bnMonth = months[month]; bnYear = year - 593; }
-    const toBnNum = (n) => n.toString().split('').map(d => numbers[d]).join('');
-    return `${toBnNum(bnDay)} ${bnMonth}, ${toBnNum(bnYear)} (বঙ্গাব্দ)`;
-}
-
-function toggleSettings() {
-    initAudio();
-    const modal = document.getElementById('settingsModal');
-    const overlay = document.getElementById('modalOverlay');
-    const btn = document.getElementById('setBtn');
-    const active = modal.classList.toggle('active');
-    btn.classList.toggle('active'); overlay.style.display = active ? 'block' : 'none';
-}
-
-function toggleGlobalLang() { isEn = !isEn; saveLang(); const btn = document.getElementById('settingLangBtn'); if(btn) btn.innerHTML = isEn ? '<i class="ph-bold ph-globe"></i> EN' : '<i class="ph-bold ph-globe"></i> BN'; renderAllLangs(); }
-
-let isEn = localStorage.getItem('lang') !== 'bn'; 
-function toggleMenu(){ initAudio(); document.body.classList.toggle('menu-open'); }
-
-function showSection(id){ 
-    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
-    const target = document.getElementById(id);
-    target.classList.add('active'); 
-    document.getElementById('homeNavBtn').style.display = (id === 'home') ? 'none' : 'flex';
-}
-
-function onMenuClick(id){ showSection(id); toggleMenu(); }
-
-function toBn(num) { if(isEn) return num; const digits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯']; return num.toString().split('').map(d => digits[d]||d).join(''); }
-function saveLang(){ localStorage.setItem('lang',isEn?'en':'bn'); }
-
-const circles={hour:document.querySelector('.hour'),min:document.querySelector('.min'),sec:document.querySelector('.sec')};
-Object.values(circles).forEach(c=>{ const r = c.r.baseVal.value; c.len = 2 * Math.PI * r; c.style.strokeDasharray = c.len; });
-
-function updateClocks(){
-    const d=new Date(); const hRaw = d.getHours(); const savedName = localStorage.getItem('dlc_username') || "";
-    let greet = "";
-    if(hRaw >= 5 && hRaw < 12) greet = isEn ? "Good Morning" : "শুভ সকাল";
-    else if(hRaw >= 12 && hRaw < 17) greet = isEn ? "Good Afternoon" : "শুভ দুপুর";
-    else if(hRaw >= 17 && hRaw < 21) greet = isEn ? "Good Evening" : "শুভ সন্ধ্যা";
-    else greet = isEn ? "Good Night" : "শুভ রাত্রি";
-    document.getElementById('greeting').textContent = savedName ? `${greet}, ${savedName}` : greet;
-    const h=hRaw%12, m=d.getMinutes(), s=d.getSeconds();
-    circles.sec.style.strokeDashoffset = circles.sec.len - (s/60)*circles.sec.len;
-    circles.min.style.strokeDashoffset = circles.min.len - ((m+s/60)/60)*circles.min.len;
-    circles.hour.style.strokeDashoffset = circles.hour.len - ((h+m/60)/12)*circles.hour.len;
-    document.getElementById('time').textContent = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true});
-    document.getElementById('date').textContent = d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'});
-    document.getElementById('bnCalendar').textContent = getBengaliCalendarDate(d);
-    const session = hRaw >= 12 ? "PM" : "AM";
-    let h12 = hRaw % 12; h12 = h12 ? h12 : 12; 
-    const hh = h12.toString().padStart(2, '0'); const mm = m.toString().padStart(2, '0'); const ss = s.toString().padStart(2, '0');
-    document.querySelectorAll('.mini-clock').forEach(mc => { mc.querySelector('.mc-h').textContent = hh; mc.querySelector('.mc-m').textContent = mm; mc.querySelector('.mc-s').textContent = ss; mc.querySelector('.mc-ampm').textContent = session; });
-}
-setInterval(updateClocks,1000); updateClocks();
-
-Sortable.create(document.getElementById('menuList'), { animation: 250, delay: 150, delayOnTouchOnly: true });
-
-/* CALCULATOR LOGICS */
-function renderRateLang(){ rateTitle.textContent=isEn?'Price Calculator':'মূল্য ক্যালকুলেটর'; lp.textContent=isEn?'Price per Kg':'প্রতি কেজি মূল্য'; lw.textContent=isEn?'Weight':'ওজন'; lu.textContent=isEn?'Unit':'একক'; lt.textContent=isEn?'Total':'মোট দাম'; la.textContent=isEn?'Pay Amount':'আমি দিতে চাই'; lg.textContent=isEn?'Result':'আপনি পাবেন'; calc(); }
-function calc(){ let p=+price.value||0, w=+weight.value||0; if(unit.value==='g')w/=1000; total.textContent="₹ "+(p*w).toFixed(2); let a=+amount.value||0; if(p>0){ let g=(a/p)*1000; result.textContent=g>=1000?(g/1000).toFixed(2)+(isEn?' Kg':' কেজি'):Math.round(g)+(isEn?' g':' গ্রাম'); } }
-['input','change'].forEach(e=>{ price.addEventListener(e,() => {saveHistory('rate'); calc();}); weight.addEventListener(e,() => {saveHistory('rate'); calc();}); unit.addEventListener(e,() => {saveHistory('rate'); calc();}); amount.addEventListener(e,() => {saveHistory('rate'); calc();}); });
-
-function renderAgeLang(){ ageTitle.textContent=isEn?'Age Calculator':'বয়স ক্যালকুলেটর'; lblDob.textContent=isEn?'Date of Birth':'জন্ম তারিখ'; lblYears.textContent=isEn?'Years':'বছর'; lblMonths.textContent=isEn?'Months':'মাস'; lblDays.textContent=isEn?'Days':'দিন'; lblNextBday.textContent=isEn?'Next B\'day':'পরবর্তী জন্মদিন'; lblDetails.textContent=isEn?'Details':'বিস্তারিত'; lblBornDay.textContent=isEn?'Born On':'জন্মবার'; lblZodiac.textContent=isEn?'Zodiac':'রাশি'; lblLifeStats.textContent=isEn?'Life Statistics':'জীবন পরিসংখ্যান'; lblTotMonths.textContent=isEn?'Total Months':'মোট মাস'; lblTotWeeks.textContent=isEn?'Total Weeks':'মোট সপ্তাহ'; lblTotDays.textContent=isEn?'Total Days':'মোট দিন'; doAgeCalc(); }
-function getZodiac(d,m){ const signs=["Capricorn","Aquarius","Pisces","Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius"]; const days=[20,19,21,20,21,21,23,23,23,23,22,22]; let i=m; if(d<days[m])i=m-1; if(i<0)i=11; return signs[i]; }
-function doAgeCalc(){ const v=dobInput.value, funDiv=document.getElementById('funContainer'); if(!v){ funDiv.style.display="none"; return; } const b=new Date(v), n=new Date(); n.setHours(0,0,0,0); b.setHours(0,0,0,0); if(b > n){ resYears.textContent="-"; resMonths.textContent="-"; resDays.textContent="-"; funDiv.style.display="none"; return; } let years = n.getFullYear() - b.getFullYear(); let months = n.getMonth() - b.getMonth(); let days = n.getDate() - b.getDate(); if(days < 0){ months--; days += new Date(n.getFullYear(), n.getMonth(), 0).getDate(); } if(months < 0){ years--; months += 12; } resYears.textContent=toBn(years); resMonths.textContent=toBn(months); resDays.textContent=toBn(days); const currentYear = n.getFullYear(); let nextBday = new Date(currentYear, b.getMonth(), b.getDate()); if(nextBday < n) nextBday.setFullYear(currentYear + 1); const diffTime = Math.abs(nextBday - n); const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); if(diffDays === 0) resNextBday.textContent=isEn?"Today!":"আজ!"; else resNextBday.textContent = toBn(diffDays) + (isEn?" Days":" দিন"); funDiv.style.display="block"; const dayNames = isEn ? ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'] : ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার']; resBornDay.textContent = dayNames[b.getDay()]; resZodiac.textContent = getZodiac(b.getDate(), b.getMonth()); const totalDiff = n - b; const totalDays = Math.floor(totalDiff / (1000 * 60 * 60 * 24)); const totalWeeks = Math.floor(totalDays / 7); const totalMonths = (years * 12) + months; const fmt = new Intl.NumberFormat(isEn?'en-IN':'bn-IN'); resTotMonths.textContent = toBn(fmt.format(totalMonths)); resTotWeeks.textContent = toBn(fmt.format(totalWeeks)); resTotDays.textContent = toBn(fmt.format(totalDays)); }
-dobInput.addEventListener('input',() => {saveHistory('age'); doAgeCalc();});
-
-function renderFuelLang(){ fuelTitle.textContent=isEn?'Fuel Calculator':'তেলের হিসাব'; lblDist.textContent=isEn?'Distance (km)':'দূরত্ব (কিমি)'; lblMil.textContent=isEn?'Mileage (km/L)':'মাইলেজ (কিমি/লিটার)'; lblFPrice.textContent=isEn?'Price (per L)':'তেলের দাম (প্রতি লিটার)'; lblSpeed.textContent=isEn?'Avg Speed (km/h)':'গড় গতি (কিমি/ঘণ্টা)'; lblFCost.textContent=isEn?'Total Cost':'মোট খরচ'; lblFFuel.textContent=isEn?'Fuel Needed':'তেল লাগবে'; lblFTime.textContent=isEn?'Est. Time':'সময় লাগবে'; doFuelCalc(); }
-function doFuelCalc(){ const d=parseFloat(fuelDist.value)||0, m=parseFloat(fuelMil.value)||0, p=parseFloat(fuelPrice.value)||0, s=parseFloat(fuelSpeed.value)||0; if(d===0||m===0){ resFCost.textContent="0.00"; resFFuel.textContent="-"; resFTime.textContent="-"; return; } const fuelNeeded=d/m, totalCost=fuelNeeded*p; let timeStr="-"; if(s>0){ const timeH=d/s, hrs=Math.floor(timeH), mins=Math.round((timeH-hrs)*60); timeStr=isEn?`${hrs}h ${mins}m`:`${toBn(hrs)}ঘ ${toBn(mins)}মি`; } const fmt=new Intl.NumberFormat(isEn?'en-IN':'bn-IN',{maximumFractionDigits:2}); resFCost.textContent=toBn(fmt.format(totalCost)); resFFuel.textContent=toBn(fuelNeeded.toFixed(2))+(isEn?" L":" লিটার"); resFTime.textContent=timeStr; }
-['fuelDist','fuelMil','fuelPrice','fuelSpeed'].forEach(id => { document.getElementById(id).addEventListener('input', () => {saveHistory('fuel'); doFuelCalc();}); });
-
-function renderEmiLang(){ emiTitle.textContent=isEn?'EMI Calculator':'EMI ক্যালকুলেটর'; lblLoan.textContent=isEn?'Loan Amount':'ঋণের পরিমাণ'; lblRate.textContent=isEn?'Interest Rate (%)':'সুদের হার (%)'; lblYears.textContent=isEn?'Tenure (Years)':'সময়সীমা (বছর)'; lblEmiRes.textContent=isEn?'Monthly EMI':'মাসিক কিস্তি (EMI)'; lblTotalInt.textContent=isEn?'Total Interest':'মোট সুদ'; lblTotalPay.textContent=isEn?'Total Payment':'মোট পরিশোধ'; txtPrin.textContent=isEn?'Principal':'আসল'; txtInt.textContent=isEn?'Interest':'সুদ'; doEmiCalc(); }
-function doEmiCalc(){ const P=parseFloat(emiPrincipal.value)||0, R=parseFloat(emiRate.value)||0, N=parseFloat(emiYears.value)||0; if(P===0||R===0||N===0){ resEmi.textContent="0.00"; resTotalInt.textContent="0"; resTotalPay.textContent="0"; document.getElementById('emiBarInt').style.width="0%"; return; } const r=R/12/100, n=N*12; const emi=(P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1); const totalPay=emi*n, totalInt=totalPay-P; const fmt=new Intl.NumberFormat(isEn?'en-IN':'bn-IN',{maximumFractionDigits:0}); resEmi.textContent=toBn(emi.toFixed(2)); resTotalInt.textContent=toBn(fmt.format(totalInt)); resTotalPay.textContent=toBn(fmt.format(totalPay)); const intPerc=(totalInt/totalPay)*100; document.getElementById('emiBarInt').style.width=intPerc+"%"; }
-['emiPrincipal','emiRate','emiYears'].forEach(id => { document.getElementById(id).addEventListener('input', () => {saveHistory('emi'); doEmiCalc();}); });
-
-const currencyList = [{code:"USD",en:"USA Dollar",bn:"আমেরিকান ডলার"},{code:"BDT",en:"Bangladeshi Taka",bn:"বাংলাদেশী টাকা"},{code:"INR",en:"Indian Rupee",bn:"ভারতীয় রুপি"},{code:"EUR",en:"Euro",bn:"ইউরো"},{code:"GBP",en:"UK Pound",bn:"ব্রিটিশ পাউন্ড"}];
-let exchangeRates={}, lastFetch=0;
-function renderCurrencyLang(){ curTitle.textContent=isEn?'Currency Converter':'কারেন্সি কনভার্টার'; curLblAmount.textContent=isEn?'Amount':'পরিমাণ'; populateCurrencySelects(true); }
-function populateCurrencySelects(k=false){ curFrom.innerHTML=""; curTo.innerHTML=""; currencyList.forEach(c=>{ const n=isEn?`${c.code}-${c.en}`:`${c.code}-${c.bn}`; curFrom.add(new Option(n,c.code)); curTo.add(new Option(n,c.code)); }); if(!k){curFrom.value="USD"; curTo.value="INR";} convertCurrency(); }
-async function convertCurrency() {
-    const f = curFrom.value, t = curTo.value, a = parseFloat(curAmount.value);
-    if (isNaN(a)) return;
-    const n = Date.now();
-    if (Object.keys(exchangeRates).length === 0 || (n - lastFetch > 3600000)) {
-        try {
-            const r = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-            const d = await r.json();
-            exchangeRates = d.rates; lastFetch = n;
-        } catch (e) { return; }
-    }
-    const rf = exchangeRates[f], rt = exchangeRates[t];
-    if (rf && rt) { curResult.textContent = `${t} ${((a / rf) * rt).toFixed(2)}`; }
-}
-function swapCurrency(){ const t=curFrom.value; curFrom.value=curTo.value; curTo.value=t; convertCurrency(); }
-curAmount.addEventListener('input',() => {saveHistory('currency'); convertCurrency();});
-
-function renderPercentLang(){ pcTitle.textContent=isEn?'Percent Calculator':'শতকরা হিসাব'; updatePCLayout(); }
-function updatePCLayout(){ doPercentCalc(); }
-function doPercentCalc(){ const v1=parseFloat(pcIn1.value), v2=parseFloat(pcIn2.value); if(isNaN(v1)||isNaN(v2)){ pcRes.textContent='-'; return; } const m=pcMode.value; let r=0; if(m=='1')r=v2===0?0:(v1/v2)*100; else if(m=='2')r=(v1/100)*v2; else if(m=='3')r=v1===0?0:((v2-v1)/v1)*100; else if(m=='4')r=v1/(1+v2/100); pcRes.textContent=(m=='1'||m=='3')?r.toFixed(2)+"%":r.toFixed(2); }
-pcIn1.addEventListener('input',() => {saveHistory('percent'); doPercentCalc();});
-pcIn2.addEventListener('input',() => {saveHistory('percent'); doPercentCalc();});
-
-const cvData={ len:{en:"Length",bn:"দৈর্ঘ্য",units:{m:{en:"Meter",bn:"মিটার",val:1},km:{en:"Kilometer",bn:"কিমি",val:1000},cm:{en:"Centimeter",bn:"সেমি",val:0.01},in:{en:"Inch",bn:"イ ইঞ্চি",val:0.0254}}}, wgt:{en:"Weight",bn:"ওজন",units:{kg:{en:"Kilogram",bn:"কেজি",val:1},g:{en:"Gram",bn:"গ্রাম",val:0.001}}}, temp:{en:"Temp",bn:"তাপমাত্রা",units:{c:{en:"Celsius",bn:"সেলসিয়াস"},f:{en:"Fahrenheit",bn:"ফারেনহাইট"}}} };
-function renderCvLang(){ updateCvUnits(true); }
-function updateCvUnits(){ const t=cvCat.value, u=cvData[t].units; cvUnitFrom.innerHTML=''; cvUnitTo.innerHTML=''; Object.keys(u).forEach(k=>{ const n=isEn?u[k].en:u[k].bn; cvUnitFrom.add(new Option(n,k)); cvUnitTo.add(new Option(n,k)); }); doConvert(); }
-function doConvert(){ const v=parseFloat(cvIn.value); if(isNaN(v)) return; const t=cvCat.value, u1=cvUnitFrom.value, u2=cvUnitTo.value; let r=0; if(t==='temp'){ if(u1===u2)r=v; else if(u1==='c'&&u2==='f')r=(v*9/5)+32; else if(u1==='f'&&u2==='c')r=(v-32)*5/9; cvOut.value=r.toFixed(2); return; } r=(v*cvData[t].units[u1].val)/cvData[t].units[u2].val; cvOut.value=r.toFixed(4); }
-cvIn.addEventListener('input',() => {saveHistory('converter'); doConvert();});
-
-const notes = [500, 200, 100, 50, 20, 10, 5, 2, 1];
-function initCashCounter() {
-    const container = document.getElementById('cashList');
-    container.innerHTML = '';
-    notes.forEach(n => {
-        const row = document.createElement('div'); row.className = 'info-row';
-        row.innerHTML = `<div style="display:flex; align-items:center; gap:10px; flex:1;"><span style="font-weight:700; width:40px; color:var(--accent);">₹${n}</span><input type="number" id="note_${n}" placeholder="0" inputmode="numeric" oninput="saveHistory('cash'); doCashCalc()" style="height:35px; text-align:center; flex:1;"></div><div style="flex:1; text-align:right; font-weight:700; color:var(--text-sec);" id="sub_${n}">0</div>`;
-        container.appendChild(row);
-    });
-}
-function doCashCalc() {
-    let grandTotal = 0;
-    notes.forEach(n => { const qty = parseInt(document.getElementById(`note_${n}`).value) || 0; const sub = qty * n; grandTotal += sub; document.getElementById(`sub_${n}`).textContent = toBn(sub.toLocaleString('en-IN')); });
-    document.getElementById('resCashTotal').textContent = (isEn ? "₹ " : "৳ ") + toBn(grandTotal.toLocaleString('en-IN'));
-}
-function clearCash() { saveHistory('cash'); notes.forEach(n => document.getElementById(`note_${n}`).value = ''); doCashCalc(); }
-function renderCashLang() { doCashCalc(); }
-
-function triggerCalc(secId) {
-    if(secId === 'fuel') doFuelCalc(); 
-    else if(secId === 'rate') calc(); 
-    else if(secId === 'emi') doEmiCalc(); 
-    else if(secId === 'currency') convertCurrency(); 
-    else if(secId === 'percent') doPercentCalc(); 
-    else if(secId === 'converter') doConvert(); 
-    else if(secId === 'age') doAgeCalc(); 
-    else if(secId === 'cash') doCashCalc();
-}
-
-function clearData(secId) {
-    saveHistory(secId);
-    const sec = document.getElementById(secId);
-    sec.querySelectorAll('input').forEach(el => { el.value = ''; localStorage.removeItem('dlc_' + el.id); });
-    triggerCalc(secId);
-}
-
-function initAutoSave() {
-    document.querySelectorAll('input, select').forEach(el => {
-        const savedVal = localStorage.getItem('dlc_' + el.id);
-        if(savedVal) el.value = savedVal;
-        el.addEventListener('change', () => localStorage.setItem('dlc_' + el.id, el.value));
-    });
-}
-
-function renderAllLangs(){ renderFuelLang(); renderRateLang(); renderPercentLang(); renderCvLang(); renderCurrencyLang(); renderAgeLang(); renderEmiLang(); renderCashLang(); }
-
-window.addEventListener('DOMContentLoaded', () => {
-    initCashCounter(); renderAllLangs(); initAutoSave();
-    const savedTheme = localStorage.getItem('dlc_theme');
-    if(savedTheme) applyTheme(savedTheme === 'dark');
-    
-    // Welcome screen timeout fix
-    const splash = document.getElementById('welcomeSplash');
-    setTimeout(() => { 
-        splash.classList.add('fade-out');
-    }, 2000);
-});
 </script>
 </body>
 </html>
