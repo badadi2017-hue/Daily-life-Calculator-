@@ -445,6 +445,7 @@ select, input, datalist {
       <div class="btn-group">
         <button class="lang-btn export-pdf-btn" onclick="exportGroceryPDF(); playClick()" title="Export PDF"><i class="ph-bold ph-file-pdf"></i></button>
         <button class="lang-btn export-excel-btn" onclick="exportGroceryExcel(); playClick()" title="Export Excel"><i class="ph-bold ph-file-xls"></i></button>
+        <button class="lang-btn export-excel-btn" onclick="document.getElementById('importFile').click(); playClick()" title="Import Previous Month List"><i class="ph-bold ph-file-arrow-up"></i></button>
         <button class="lang-btn share-btn" onclick="shareAsText('grocery'); playClick()" aria-label="Copy Text"><i class="ph-bold ph-copy"></i></button>
         <button class="lang-btn share-btn" onclick="shareAsImage('grocery')" aria-label="Share Image"><i class="ph-bold ph-image-square"></i></button>
         <button class="lang-btn undo-btn" id="undo-grocery" onclick="undoData('grocery'); playClick()" aria-label="Undo"><i class="ph-bold ph-arrow-u-up-left"></i></button>
@@ -452,6 +453,8 @@ select, input, datalist {
       </div>
     </div>
     <div id="grocery-date" class="grocery-date"></div>
+    <input type="file" id="importFile" accept=".xlsx" style="display:none;">
+    <table id="groceryTable" style="display:none;"></table>
     
     <div id="groceryForm" style="display: flex; flex-direction: column; gap: 8px;">
       <div>
@@ -466,12 +469,12 @@ select, input, datalist {
           <option value="হলুদ গুঁড়ো (COOKME)"><option value="বরোলিন"><option value="Gillete Guard"><option value="Dettol SOAP">
           <option value="Lux"><option value="Dove (ছোট)"><option value="Sunlight (500g)"><option value="ছোলা">
           <option value="মুগ ডাল"><option value="বাদাম"><option value="Tata salt"><option value="সাদা সরষে">
-          <option value="গোটা জিরা"><option value="সরষে তেল (FORTUNE)"><option value="সয়াবিন (ছোট)"><option value="দেশলাই">
+          <option value="গোটা জিরা"><option value="সরষে তেল (FORTUNE)"><option value="সয়াবিন (ছোট)"><option value="দেশলাই">
           <option value="Dettol (liquid)"><option value="খেজুর"><option value="Jack Body Oil"><option value="Soya Sos">
           <option value="Chili Sos"><option value="JOL JIRA"><option value="Tooth Brush"><option value="ঘি (মর্টন)">
-          <option value="জিরা"><option value="আচার (MIXED)"><option value="পাপড় (BAT)"><option value="BIG B BISCUIT">
-          <option value="ময়দা"><option value="Closeup (50 GRAM)"><option value="ছোটো বোরি"><option value="পোস্ত">
-          <option value="MEAT MASALA"><option value="শাহী গরম মসলা গুড়ো"><option value="Sunflower Oil"><option value="ছোলার ডাল">
+          <option value="জিরা"><option value="আচার (MIXED)"><option value="পাপড় (BAT)"><option value="BIG B BISCUIT">
+          <option value="ময়দা"><option value="Closeup (50 GRAM)"><option value="ছোটো বোরি"><option value="পোস্ত">
+          <option value="MEAT MASALA"><option value="শাহী গরম মসলা গুড়ো"><option value="Sunflower Oil"><option value="ছোলার ডাল">
         </datalist>
       </div>
       <div class="row">
@@ -867,14 +870,14 @@ function clearGrocery() {
   updateUndoState('grocery');
 }
 
-/* --- ADDED: Export Functions for Grocery List --- */
+/* --- EXPORT FUNCTIONS FOR GROCERY --- */
 
 function updateGroceryDate() {
     const d = new Date();
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     const dateStr = d.toLocaleDateString(isEn ? 'en-US' : 'bn-IN', options);
     const label = isEn ? "Grocery List – " : "মুদি তালিকা – ";
-    $('grocery-date').textContent = label + dateStr;
+    if($('grocery-date')) $('grocery-date').textContent = label + dateStr;
 }
 
 function exportGroceryPDF() {
@@ -883,54 +886,113 @@ function exportGroceryPDF() {
         return;
     }
 
-    const d = new Date();
-    const dateStr = d.toLocaleDateString(isEn ? 'en-US' : 'bn-IN', { 
-        year: 'numeric', month: 'long', day: 'numeric' 
-    });
+    const prefix = isEn ? "Grocery List" : "মুদি তালিকা";
+    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    const todayStr = new Date().toLocaleDateString(isEn ? 'en-US' : 'bn-IN', dateOptions);
 
-    // Configuration for the PDF
     const opt = {
-        margin: [15, 15, 15, 15], // Top, Left, Bottom, Right (Full Margins)
-        filename: `Grocery_List_${d.toISOString().split('T')[0]}.pdf`,
+        margin: [15, 15, 15, 15],
+        filename: `${prefix} - ${todayStr}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 3, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // Constructing a styled HTML template for the PDF
     const pdfContent = `
         <div style="font-family: sans-serif; padding: 10px; color: #000; width: 100%;">
-            <div style="text-align: center; border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 20px;">
-                <h1 style="font-size: 28px; margin: 0; color: #007AFF;">${isEn ? "Grocery List" : "মুদি তালিকা"}</h1>
-                <p style="font-size: 16px; color: #666; margin-top: 5px;">${dateStr}</p>
+            <div style="text-align: center; border-bottom: 6px solid #007AFF; padding-bottom: 10px; margin-bottom: 20px;">
+                <h1 style="font-size: 50px; margin: 0; color: #007AFF;">${prefix}</h1>
+                <p style="font-size: 50px; color: #666; margin-top: 15px;">${todayStr}</p>
             </div>
-            
-            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 50px;">
                 <thead>
                     <tr style="background-color: #f2f2f7; border-bottom: 1px solid #ccc;">
-                        <th style="text-align: left; padding: 12px; font-size: 18px;">${isEn ? "Item Name" : "জিনিসের নাম"}</th>
-                        <th style="text-align: right; padding: 12px; font-size: 18px;">${isEn ? "Quantity" : "পরিমাণ"}</th>
+                        <th style="text-align: left; padding: 12px; font-size: 38px;">${isEn ? "Item Name" : "জিনিসের নাম"}</th>
+                        <th style="text-align: right; padding: 12px; font-size: 38px;">${isEn ? "Quantity" : "পরিমাণ"}</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${groceryItems.map(it => `
                         <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 15px 12px; font-size: 30px; font-weight: bold;">${it.name}</td>
-                            <td style="padding: 15px 12px; font-size: 30px; text-align: right;">${toBn(it.qty)} ${it.unit}</td>
+                            <td style="padding: 25px 22px; font-size: 30px; font-weight: bold;">${it.name}</td>
+                            <td style="padding: 25px 22px; font-size: 30px; text-align: right;">${toBn(it.qty)} ${it.unit}</td>
                         </tr>
                     `).join('')}
                 </tbody>
             </table>
-            
             <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px;">
                 Generated by Daily Life Calculator
             </div>
         </div>
     `;
-
     html2pdf().set(opt).from(pdfContent).save();
 }
 
+function exportGroceryExcel() {
+  const table = $('groceryTable');
+  table.innerHTML = `<thead><tr><th>Item</th><th>Quantity</th><th>Unit</th></tr></thead><tbody>` + 
+    groceryItems.map(it => `<tr><td>${it.name}</td><td>${it.qty}</td><td>${it.unit}</td></tr>`).join('') + `</tbody>`;
+  
+  const wb = XLSX.utils.table_to_book(document.getElementById("groceryTable"), {sheet:"Grocery"});
+
+  // Dynamically set filename based on language
+  const prefix = isEn ? "Grocery list" : "মুদি তালিকা";
+  const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  const today = new Date().toLocaleDateString(isEn ? 'en-US' : 'bn-IN', dateOptions);
+
+  XLSX.writeFile(wb, `${prefix} - ${today}.xlsx`);
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, {type: 'array'});
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet);
+    saveHistory('grocery');
+    rows.forEach(row => {
+      groceryItems.push({
+        name: row.Item || row.name || "Unknown",
+        qty: row.Quantity || row.qty || 1,
+        unit: row.Unit || row.unit || "পিস"
+      });
+    });
+    localStorage.setItem('dlc_grocery', JSON.stringify(groceryItems));
+    renderGrocery();
+    updateUndoState('grocery');
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* --- CALCULATION LOGIC --- */
+
+function calc() {
+    const pricePerKg = parseFloat($('price').value) || 0;
+    const weightValue = parseFloat($('weight').value) || 0;
+    const unit = $('unit').value;
+    const payAmount = parseFloat($('amount').value) || 0;
+
+    // A. Weight to Price (Total Price Calculation)
+    let totalPrice = 0;
+    if (pricePerKg > 0 && weightValue > 0) {
+        if (unit === 'kg') {
+            totalPrice = pricePerKg * weightValue;
+        } else {
+            totalPrice = (pricePerKg / 1000) * weightValue;
+        }
+    }
+    $('total').textContent = "₹ " + toBn(totalPrice.toFixed(2));
+
+    // B. Price to Weight (Reverse Calculation)
+    let weightResult = 0;
+    if (pricePerKg > 0 && payAmount > 0) {
+        weightResult = (payAmount / pricePerKg) * 1000;
+    }
+    $('result').textContent = toBn(weightResult.toFixed(2)) + " g";
+}
 
 function doEmiCalc() {
     const P=+$('emiPrincipal').value, R=+$('emiRate').value, N=+$('emiYears').value;
@@ -1014,8 +1076,8 @@ window.addEventListener('DOMContentLoaded', () => {
     
     initCash(); initCurSelects(); updateCvUnits(); getMoonPhase(); renderAllLangs(); updateSunMoonPos(); renderGrocery();
     
-    /* ADDED: Initialize Date Display on Load */
     updateGroceryDate();
+    $('importFile').addEventListener('change', handleImport);
 
     const menuList = $('menuList'); if(menuList) Sortable.create(menuList, { animation: 150 });
     
@@ -1052,9 +1114,8 @@ function getMoonPhase() {
     if(nameEl) nameEl.textContent = phases[b].bn; 
 }
 
-/* --- BENGALI CALENDAR --- */
 function getBengaliCalendarDate(date) {
-    const months = ["বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ", "পৌষ", "মাঘ", "ফালগুন", "চৈত্র"];
+    const months = ["বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ", "পৌষ", "মাঘ", "ফালগুন", "চৈত্র"];
     let gDay = date.getDate(), gMonth = date.getMonth(), gYear = date.getFullYear();
     let bnYear = gYear - 593;
     if (gMonth < 3 || (gMonth === 3 && gDay < 15)) bnYear--;
@@ -1148,7 +1209,6 @@ function renderAllLangs() {
     });
     $('settingLangBtn').innerHTML = isEn ? '<i class="ph-bold ph-globe"></i> EN' : '<i class="ph-bold ph-globe"></i> BN';
     if(editIdx === -1) { $('gAddBtn').textContent = isEn ? "Add Item" : "যোগ করুন"; }
-    /* ADDED: Update Date format on lang toggle */
     updateGroceryDate();
 }
 
@@ -1247,7 +1307,6 @@ function clearData(secId) {
 }
 function clearCash() { notes.forEach(n=>{ const el = $('n'+n); if(el) el.value=""; }); doCash(); }
 
-/* --- UNIVERSAL UNDO LOGIC --- */
 function saveHistory(secId) {
     const sec = $(secId); if(!sec) return;
     let state = {};
