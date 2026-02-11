@@ -73,14 +73,6 @@ i { vertical-align: middle; line-height: 1; pointer-events: none; }
 .f3 { width: 150px; height: 150px; background: #34C759; top: 40%; left: 60%; animation-duration: 32s; animation-delay: -10s; opacity: 0.2; }
 @keyframes float { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(30px, -50px); } 66% { transform: translate(-20px, 20px); } }
 
-.astro-info { margin-bottom: 4px; text-align: center; background: var(--glass-input); padding: 4px 12px; border-radius: 20px; border: 0.5px solid var(--glass-border); backdrop-filter: blur(10px); }
-.astro-label { font-size: 12px; font-weight: 800; color: var(--accent); margin-bottom: 0px; }
-.astro-vals { font-size: 11px; font-weight: 600; color: var(--text-sec); display: flex; gap: 8px; justify-content: center; }
-
-.moon-wrap { margin-top: 4px; display: flex; flex-direction: column; align-items: center; gap: 0px; z-index: 5; pointer-events: none; }
-#moonIcon { font-size: 24px; filter: drop-shadow(0 0 12px var(--accent)); transition: 0.3s; }
-#moonName { font-size: 13px; font-weight: 800; color: var(--text); text-shadow: 0 0 8px var(--glass-border); letter-spacing: 0.5px; }
-
 .menu-version-top {
   position: absolute; top: 22px; right: 20px; font-size: 10px; font-weight: 800; color: var(--accent);
   background: var(--glass-input); padding: 4px 10px; border-radius: 20px; text-transform: uppercase;
@@ -199,6 +191,10 @@ body.menu-open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate
 .side-menu button { width: 100%; padding: 16px 20px; margin-bottom: 10px; border: none; border-radius: 14px; background: transparent; color: var(--text); font-size: 17px; font-weight: 600; text-align: left; transition: background 0.2s; display: flex; align-items: center; gap: 12px; }
 .side-menu button i { color: var(--accent); font-size: 20px; }
 
+/* Edit mode styles */
+#menuList.edit-mode button { border: 1px dashed var(--accent); cursor: grab; }
+#menuList.edit-mode button:active { cursor: grabbing; }
+
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: none; z-index: 2000; }
 body.menu-open .side-menu { left: 0; }
 body.menu-open .overlay { display: block; }
@@ -209,7 +205,6 @@ body.menu-open .overlay { display: block; }
 }
 .section.active { display: flex; animation: sectionSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-/* Home Adjustment to Avoid Scroll */
 #home { 
   justify-content: center; 
   padding-top: max(40px, env(safe-area-inset-top)); 
@@ -258,11 +253,9 @@ circle { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.1s l
 .share-btn { background: rgba(0, 122, 255, 0.1); color: var(--accent); }
 .voice-btn { background: rgba(52, 199, 89, 0.1); color: #34C759; }
 
-/* ADDED: Export Buttons Styling */
 .export-pdf-btn { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
 .export-excel-btn { background: rgba(52, 199, 89, 0.1); color: #34C759; }
 
-/* ADDED: Date Display Styling */
 .grocery-date { font-size: 12px; color: var(--text-sec); margin-top: -4px; margin-bottom: 10px; font-weight: 600; }
 
 .swap-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass-input); color: var(--accent); font-size: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; align-self: flex-end; margin-bottom: 4px; }
@@ -290,7 +283,6 @@ input::placeholder { opacity: 0.2; }
 
 .footer-credit { width: 100%; text-align: center; font-size: 12px; color: var(--text-sec); padding: 5px 0; margin-top: auto; flex-shrink: 0; }
 
-/* Grocery List Specific Styles */
 .grocery-list-container {
   display: flex; flex-direction: column; gap: 8px;
   max-height: 220px; overflow-y: auto; padding-right: 4px;
@@ -317,7 +309,6 @@ input::placeholder { opacity: 0.2; }
   margin-top: 5px; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
-/* FIXED: Chrome <select> dropdown not clickable - z-index, pointer-events & user-select fix */
 select, input, datalist {
   position: relative !important;
   z-index: 100 !important;
@@ -379,18 +370,21 @@ select, input, datalist {
 
 <div class="side-menu">
  <div class="menu-version-top">v1.3.1</div> 
- <div style="font-size:24px; font-weight:700; margin-bottom:20px;" data-lang="menuTitle">Menu</div>
+ <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <div style="font-size:24px; font-weight:700;" data-lang="menuTitle">Menu</div>
+    <button id="menuEditBtn" class="mini-btn" onclick="toggleMenuEdit()" style="width:auto; padding:5px 10px; margin-bottom:0;"><i class="ph-bold ph-pencil"></i> Edit</button>
+ </div>
  <div id="menuList">
-     <button onclick="onMenuClick('home'); playClick()"><i class="ph-bold ph-house"></i> <span data-lang="mHome">Home</span></button>
-     <button onclick="onMenuClick('grocery'); playClick()"><i class="ph-bold ph-shopping-cart"></i> <span data-lang="mGroc">Grocery List</span></button>
-     <button onclick="onMenuClick('rate'); playClick()"><i class="ph-bold ph-scales"></i> <span data-lang="mPrice">Price Calculator</span></button>
-     <button onclick="onMenuClick('fuel'); playClick()"><i class="ph-bold ph-gas-pump"></i> <span data-lang="mFuel">Fuel Calculator</span></button>
-     <button onclick="onMenuClick('age'); playClick()"><i class="ph-bold ph-cake"></i> <span data-lang="mAge">Age Calculator</span></button>
-     <button onclick="onMenuClick('emi'); playClick()"><i class="ph-bold ph-bank"></i> <span data-lang="mEmi">EMI Calculator</span></button>
-     <button onclick="onMenuClick('currency'); playClick()"><i class="ph-bold ph-currency-circle-dollar"></i> <span data-lang="mCur">Currency Converter</span></button>
-     <button onclick="onMenuClick('percent'); playClick()"><i class="ph-bold ph-percent"></i> <span data-lang="mPerc">Percentage Calculator</span></button>
-     <button onclick="onMenuClick('converter'); playClick()"><i class="ph-bold ph-arrows-left-right"></i> <span data-lang="mConv">Unit Converter</span></button>
-     <button onclick="onMenuClick('cash'); playClick()"><i class="ph-bold ph-money"></i> <span data-lang="mCash">Cash Counter</span></button>
+     <button id="mi-home" onclick="onMenuClick('home'); playClick()"><i class="ph-bold ph-house"></i> <span data-lang="mHome">Home</span></button>
+     <button id="mi-grocery" onclick="onMenuClick('grocery'); playClick()"><i class="ph-bold ph-shopping-cart"></i> <span data-lang="mGroc">Grocery List</span></button>
+     <button id="mi-rate" onclick="onMenuClick('rate'); playClick()"><i class="ph-bold ph-scales"></i> <span data-lang="mPrice">Price Calculator</span></button>
+     <button id="mi-fuel" onclick="onMenuClick('fuel'); playClick()"><i class="ph-bold ph-gas-pump"></i> <span data-lang="mFuel">Fuel Calculator</span></button>
+     <button id="mi-age" onclick="onMenuClick('age'); playClick()"><i class="ph-bold ph-cake"></i> <span data-lang="mAge">Age Calculator</span></button>
+     <button id="mi-emi" onclick="onMenuClick('emi'); playClick()"><i class="ph-bold ph-bank"></i> <span data-lang="mEmi">EMI Calculator</span></button>
+     <button id="mi-currency" onclick="onMenuClick('currency'); playClick()"><i class="ph-bold ph-currency-circle-dollar"></i> <span data-lang="mCur">Currency Converter</span></button>
+     <button id="mi-percent" onclick="onMenuClick('percent'); playClick()"><i class="ph-bold ph-percent"></i> <span data-lang="mPerc">Percentage Calculator</span></button>
+     <button id="mi-converter" onclick="onMenuClick('converter'); playClick()"><i class="ph-bold ph-arrows-left-right"></i> <span data-lang="mConv">Unit Converter</span></button>
+     <button id="mi-cash" onclick="onMenuClick('cash'); playClick()"><i class="ph-bold ph-money"></i> <span data-lang="mCash">Cash Counter</span></button>
  </div>
 </div>
 <div class="overlay" onclick="toggleMenu()"></div>
@@ -398,14 +392,6 @@ select, input, datalist {
 <section id="home" class="section active">
  <div class="greeting" id="greeting">Hello</div>
  
- <div class="astro-info" id="astroBox">
-    <div class="astro-label" id="astroTitle">সূর্যের অবস্থান</div>
-    <div class="astro-vals">
-      <span id="astroAlt">উচ্চতা: ০.০০°</span>
-      <span id="astroDir">দিক: উত্তর</span>
-    </div>
- </div>
-
  <div class="clock-wrap">
   <div class="ring-clock">
    <svg viewBox="0 0 220 220"><circle class="hour" cx="110" cy="110" r="85" stroke-width="10"/><circle class="min" cx="110" cy="110" r="70" stroke-width="10"/><circle class="sec" cx="110" cy="110" r="55" stroke-width="10"/></svg>
@@ -415,7 +401,6 @@ select, input, datalist {
      <div class="bn-date" id="bnCalendar">...</div>
    </div>
   </div>
-  <div class="moon-wrap"> <div id="moonIcon"></div> <div id="moonName"></div> </div>
  </div>
  <div class="quick-links">
      <div class="q-card" role="button" tabindex="0" onclick="showSection('grocery'); playClick()"><div class="q-icon"><i class="ph-duotone ph-shopping-cart"></i></div><div class="q-name" data-lang="qGroc">Grocery</div></div>
@@ -496,7 +481,7 @@ select, input, datalist {
       </div>
       <div>
         <label for="gItemPrice" data-lang="gPriceSingle">Price ₹</label>
-        <input id="gItemPrice" type="number" step="0.01" inputmode="decimal" placeholder="Price ₹ (Optional)">
+        <input id="gItemPrice" type="number" step="1" inputmode="numeric" placeholder="Price ₹ (Optional)">
       </div>
       <button class="add-btn-main" onclick="saveGroceryItem(); playClick()" id="gAddBtn">Add Item</button>
     </div>
@@ -511,7 +496,7 @@ select, input, datalist {
       </div>
       <div class="box box-compact">
         <span data-lang="gTotalBill">Total Bill</span>
-        <span class="total" id="gResTotalBill">₹ 0.00</span>
+        <span class="total" id="gResTotalBill">₹ 0</span>
       </div>
     </div>
     <button class="mini-btn" style="width:100%; justify-content:center; margin-top:8px; background:rgba(255,59,48,0.1); color:var(--danger);" onclick="clearAllPrices(); playTrash()" data-lang="gClearPrices">Clear All Prices</button>
@@ -531,11 +516,11 @@ select, input, datalist {
     <button class="lang-btn clear-btn" onclick="clearData('rate'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label for="price" data-lang="lPrice">Price per Kg</label><input id="price" type="number" inputmode="decimal" placeholder="0.00"></div>
-  <div class="row"><div><label for="weight" data-lang="lWeight">Weight</label><input id="weight" type="number" inputmode="decimal" placeholder="0.00"></div><div><label for="unit" data-lang="lUnit">Unit</label><select id="unit"><option value="g" data-lang="uGram">Gram</option><option value="kg" data-lang="uKg">Kg</option></select></div></div>
-  <div class="box box-compact"><span data-lang="lTotal">Total</span><span class="total" id="total">₹ 0.00</span></div>
-  <div><label for="amount" data-lang="lPay">Pay Amount</label><input id="amount" type="number" inputmode="decimal" placeholder="0.00"></div>
-  <div class="box box-compact"><span data-lang="lRes">Result</span><span class="total" id="result">0.00 g</span></div>
+  <div><label for="price" data-lang="lPrice">Price per Kg</label><input id="price" type="number" inputmode="numeric" placeholder="0"></div>
+  <div class="row"><div><label for="weight" data-lang="lWeight">Weight</label><input id="weight" type="number" inputmode="numeric" placeholder="0"></div><div><label for="unit" data-lang="lUnit">Unit</label><select id="unit"><option value="g" data-lang="uGram">Gram</option><option value="kg" data-lang="uKg">Kg</option></select></div></div>
+  <div class="box box-compact"><span data-lang="lTotal">Total</span><span class="total" id="total">₹ 0</span></div>
+  <div><label for="amount" data-lang="lPay">Pay Amount</label><input id="amount" type="number" inputmode="numeric" placeholder="0"></div>
+  <div class="box box-compact"><span data-lang="lRes">Result</span><span class="total" id="result">0 g</span></div>
  </div>
  <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
@@ -552,10 +537,10 @@ select, input, datalist {
     <button class="lang-btn clear-btn" onclick="clearData('fuel'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div class="row"><div><label for="fuelDist" data-lang="fDist">Distance (km)</label><input id="fuelDist" type="number" inputmode="decimal" placeholder="100.00"></div><div><label for="fuelMil" data-lang="fMil">Mileage (km/L)</label><input id="fuelMil" type="number" inputmode="decimal" placeholder="45.00"></div></div>
-  <div class="row"><div><label for="fuelPrice" data-lang="fPrc">Price (per L)</label><input id="fuelPrice" type="number" inputmode="decimal" placeholder="100.00"></div><div><label for="fuelSpeed" data-lang="fSpd">Speed (km/h)</label><input id="fuelSpeed" type="number" inputmode="decimal" placeholder="60.00"></div></div>
-  <div class="box" style="background: rgba(0,122,255,0.1);"><span data-lang="lTotal">Total Cost</span><span class="total" id="resFCost">0.00</span></div>
-  <div class="grid-2"><div class="box"><span data-lang="fNeed">Fuel Needed</span><span class="total" id="resFFuel">0.00 L</span></div><div class="box"><span data-lang="fTime">Est. Time</span><span class="total" id="resFTime">0m</span></div></div>
+  <div class="row"><div><label for="fuelDist" data-lang="fDist">Distance (km)</label><input id="fuelDist" type="number" inputmode="numeric" placeholder="100"></div><div><label for="fuelMil" data-lang="fMil">Mileage (km/L)</label><input id="fuelMil" type="number" inputmode="numeric" placeholder="45"></div></div>
+  <div class="row"><div><label for="fuelPrice" data-lang="fPrc">Price (per L)</label><input id="fuelPrice" type="number" inputmode="numeric" placeholder="100"></div><div><label for="fuelSpeed" data-lang="fSpd">Speed (km/h)</label><input id="fuelSpeed" type="number" inputmode="numeric" placeholder="60"></div></div>
+  <div class="box" style="background: rgba(0,122,255,0.1);"><span data-lang="lTotal">Total Cost</span><span class="total" id="resFCost">0</span></div>
+  <div class="grid-2"><div class="box"><span data-lang="fNeed">Fuel Needed</span><span class="total" id="resFFuel">0 L</span></div><div class="box"><span data-lang="fTime">Est. Time</span><span class="total" id="resFTime">0m</span></div></div>
  </div>
  <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
@@ -573,9 +558,9 @@ select, input, datalist {
   </div>
   <div><label for="dobInput" data-lang="aDob">Date of Birth</label><input id="dobInput" type="date"></div>
   <div class="grid-2" style="margin-top:8px;">
-    <div class="box"><span data-lang="aYrs">Years</span><span class="total" id="resYears">0.00</span></div>
-    <div class="box"><span data-lang="aMnts">Months</span><span class="total" id="resMonths">0.00</span></div>
-    <div class="box"><span data-lang="aDys">Days</span><span class="total" id="resDays">0.00</span></div>
+    <div class="box"><span data-lang="aYrs">Years</span><span class="total" id="resYears">0</span></div>
+    <div class="box"><span data-lang="aMnts">Months</span><span class="total" id="resMonths">0</span></div>
+    <div class="box"><span data-lang="aDys">Days</span><span class="total" id="resDays">0</span></div>
     <div class="box"><span data-lang="aNext">Next B'day</span><span class="total" id="resNextBday" style="color: #FF9500;">-</span></div>
   </div>
   <div id="funContainer" style="display:none;">
@@ -583,9 +568,9 @@ select, input, datalist {
       <div class="info-row"><span class="info-label" data-lang="aBorn">Born On</span><span class="info-val" id="resBornDay">-</span></div>
       <div class="info-row"><span class="info-label" data-lang="aZod">Zodiac</span><span class="info-val" id="resZodiac">-</span></div>
       <div class="info-title" data-lang="aStats">Total Life Stats</div>
-      <div class="info-row"><span class="info-label" data-lang="aTMnt">Total Months</span><span class="info-val" id="resTotMonths">0.00</span></div>
-      <div class="info-row"><span class="info-label" data-lang="aTWk">Total Weeks</span><span class="info-val" id="resTotWeeks">0.00</span></div>
-      <div class="info-row"><span class="info-label" data-lang="aTDy">Total Days</span><span class="info-val" id="resTotDays">0.00</span></div>
+      <div class="info-row"><span class="info-label" data-lang="aTMnt">Total Months</span><span class="info-val" id="resTotMonths">0</span></div>
+      <div class="info-row"><span class="info-label" data-lang="aTWk">Total Weeks</span><span class="info-val" id="resTotWeeks">0</span></div>
+      <div class="info-row"><span class="info-label" data-lang="aTDy">Total Days</span><span class="info-val" id="resTotDays">0</span></div>
   </div>
  </div>
  <div class="footer-credit">Made with ❤️ by Aditya</div>
@@ -603,11 +588,11 @@ select, input, datalist {
     <button class="lang-btn clear-btn" onclick="clearData('emi'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label for="emiPrincipal" data-lang="eLoan">Loan Amount</label><input id="emiPrincipal" type="number" inputmode="decimal" placeholder="500000.00"></div>
-  <div class="row"><div><label for="emiRate" data-lang="eRate">Interest (%)</label><input id="emiRate" type="number" inputmode="decimal" placeholder="10.50"></div><div><label for="emiYears" data-lang="eYrs">Years</label><input id="emiYears" type="number" inputmode="decimal" placeholder="5.00"></div></div>
-  <div class="box" style="background: rgba(0,122,255,0.1);"><span data-lang="eRes">Monthly EMI</span><span class="total" id="resEmi">0.00</span></div>
+  <div><label for="emiPrincipal" data-lang="eLoan">Loan Amount</label><input id="emiPrincipal" type="number" inputmode="numeric" placeholder="500000"></div>
+  <div class="row"><div><label for="emiRate" data-lang="eRate">Interest (%)</label><input id="emiRate" type="number" inputmode="numeric" placeholder="11"></div><div><label for="emiYears" data-lang="eYrs">Years</label><input id="emiYears" type="number" inputmode="numeric" placeholder="5"></div></div>
+  <div class="box" style="background: rgba(0,122,255,0.1);"><span data-lang="eRes">Monthly EMI</span><span class="total" id="resEmi">0</span></div>
   <div class="emi-bar-wrap"><div id="emiBarInt" class="emi-bar-interest"></div></div>
-  <div class="grid-2" style="margin-top:8px;"><div class="box"><span data-lang="eTInt">Total Interest</span><span class="total" id="resTotalInt">0.00</span></div><div class="box"><span data-lang="eTPay">Total Payment</span><span class="total" id="resTotalPay">0.00</span></div></div>
+  <div class="grid-2" style="margin-top:8px;"><div class="box"><span data-lang="eTInt">Total Interest</span><span class="total" id="resTotalInt">0</span></div><div class="box"><span data-lang="eTPay">Total Payment</span><span class="total" id="resTotalPay">0</span></div></div>
  </div>
  <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
@@ -625,7 +610,7 @@ select, input, datalist {
     <button class="lang-btn clear-btn" onclick="clearData('currency'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label for="curAmount" data-lang="cAmt">Amount</label><input id="curAmount" type="number" inputmode="decimal" value="1.00" placeholder="0.00"></div>
+  <div><label for="curAmount" data-lang="cAmt">Amount</label><input id="curAmount" type="number" inputmode="numeric" value="1" placeholder="0"></div>
   <div class="row"><div><label for="curFrom" data-lang="cFrom">From</label><select id="curFrom" onchange="convertCurrency()"></select></div><button class="swap-btn" onclick="swapCurrency(); playClick()" aria-label="Swap Currency"><i class="ph-bold ph-arrows-left-right"></i></button><div><label for="curTo" data-lang="cTo">To</label><select id="curTo" onchange="convertCurrency()"></select></div></div>
   <div class="box"><span data-lang="lRes">Result</span><span class="total" id="curResult">...</span><div class="rate-info" id="curRateInfo" style="font-size: 11px; color: var(--text-sec); margin-top: 4px;">Fetching...</div></div>
  </div>
@@ -645,8 +630,8 @@ select, input, datalist {
    </div>
   </div>
   <div><label for="pcMode" data-lang="pMode">Mode</label><select id="pcMode" onchange="doPercentCalc()"><option value="1">X is what % of Y</option><option value="2">X% of Y</option><option value="3">% Increase/Decrease</option></select></div>
-  <div class="row"><div><label for="pcIn1">X Value</label><input id="pcIn1" type="number" inputmode="decimal" placeholder="0.00"></div><div><label for="pcIn2">Y Value</label><input id="pcIn2" type="number" inputmode="decimal" placeholder="0.00"></div></div>
-  <div class="box"><span data-lang="lRes">Result</span><span class="total" id="pcRes">0.00</span></div>
+  <div class="row"><div><label for="pcIn1">X Value</label><input id="pcIn1" type="number" inputmode="numeric" placeholder="0"></div><div><label for="pcIn2">Y Value</label><input id="pcIn2" type="number" inputmode="numeric" placeholder="0"></div></div>
+  <div class="box"><span data-lang="lRes">Result</span><span class="total" id="pcRes">0</span></div>
  </div>
  <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
@@ -664,8 +649,8 @@ select, input, datalist {
    </div>
   </div>
   <div><label for="cvCat" data-lang="cvCat">Category</label><select id="cvCat" onchange="updateCvUnits()"></select></div>
-  <div class="row"><div><label for="cvIn" data-lang="cFrom">From</label><input id="cvIn" type="number" inputmode="decimal" oninput="doConvert()" placeholder="0.00"></div><div><label for="cvUnitFrom">&nbsp;</label><select id="cvUnitFrom" onchange="doConvert()"></select></div></div>
-  <div class="row"><div><label for="cvOut" data-lang="cTo">To</label><input id="cvOut" type="text" readonly placeholder="0.00"></div><div><label for="cvUnitTo">&nbsp;</label><select id="cvUnitTo" onchange="doConvert()"></select></div></div>
+  <div class="row"><div><label for="cvIn" data-lang="cFrom">From</label><input id="cvIn" type="number" inputmode="numeric" oninput="doConvert()" placeholder="0"></div><div><label for="cvUnitFrom">&nbsp;</label><select id="cvUnitFrom" onchange="doConvert()"></select></div></div>
+  <div class="row"><div><label for="cvOut" data-lang="cTo">To</label><input id="cvOut" type="text" readonly placeholder="0"></div><div><label for="cvUnitTo">&nbsp;</label><select id="cvUnitTo" onchange="doConvert()"></select></div></div>
  </div>
  <div class="footer-credit">Made with ❤️ by Aditya</div>
 </section>
@@ -685,7 +670,7 @@ select, input, datalist {
   <div id="cashList" style="display: flex; flex-direction: column; gap: 8px;"></div>
   <div class="box" style="background: rgba(52, 199, 89, 0.1); margin-top: 15px;">
     <span data-lang="lGTotal">Grand Total</span>
-    <span class="total" id="resCashTotal" style="font-size: 26px;">₹ 0.00</span>
+    <span class="total" id="resCashTotal" style="font-size: 26px;">₹ 0</span>
   </div>
  </div>
  <div class="footer-credit">Made with ❤️ by Aditya</div>
@@ -704,7 +689,7 @@ const dict = {
         eLoan: "Loan Amount", eRate: "Interest (%)", eYrs: "Years", eRes: "Monthly EMI", ePrin: "Principal", eInt: "Interest", eTInt: "Total Interest", eTPay: "Total Payment",
         cAmt: "Amount", cFrom: "From", cTo: "To", pMode: "Mode", cvCat: "Category", lGTotal: "Grand Total",
         gItem: "Item Name", gQty: "Quantity", gUnit: "Unit", gListTitle: "Current List",
-        gPriceSingle: "Price ₹", gTotalItems: "Total Items", gTotalBill: "Total Bill", gClearPrices: "Clear All Prices" // Added for simple billing feature
+        gPriceSingle: "Price ₹", gTotalItems: "Total Items", gTotalBill: "Total Bill", gClearPrices: "Clear All Prices"
     },
     bn: {
         name: "আপনার নাম", accent: "অ্যাকসেন্ট কালার", language: "ভাষা", sound: "শব্দ", theme: "থিম",
@@ -717,7 +702,7 @@ const dict = {
         eLoan: "ঋণের পরিমাণ", eRate: "সুদ (%)", eYrs: "বছর", eRes: "মাসিক কিস্তি", ePrin: "আসল", eInt: "সুদ", eTInt: "মোট সুদ", eTPay: "মোট পরিশোধ",
         cAmt: "পরিমাণ", cFrom: "থেকে", cTo: "পর্যন্ত", pMode: "মোড", cvCat: "ধরণ", lGTotal: "সর্বমোট টাকা",
         gItem: "জিনিসের নাম", gQty: "পরিমাণ", gUnit: "একক", gListTitle: "বর্তমান তালিকা",
-        gPriceSingle: "দাম ₹", gTotalItems: "মোট জিনিস", gTotalBill: "মোট বিল", gClearPrices: "সব দাম মুছুন" // Added for simple billing feature
+        gPriceSingle: "দাম ₹", gTotalItems: "মোট জিনিস", gTotalBill: "মোট বিল", gClearPrices: "সব দাম মুছুন"
     }
 };
 
@@ -727,8 +712,9 @@ const $ = (id) => document.getElementById(id);
 let circles = {};
 let groceryItems = JSON.parse(localStorage.getItem('dlc_grocery') || '[]');
 let editIdx = -1;
+let sortableMenu = null;
+let isMenuEditMode = false;
 
-/* --- THEME LOGIC: STRICT SYSTEM FOLLOW --- */
 function syncTheme() {
     const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     if (isDark) document.body.classList.add('dark');
@@ -801,7 +787,7 @@ function toggleSettings() {
 
 function toggleGlobalLang() { 
     isEn = !isEn; localStorage.setItem('lang', isEn ? 'en' : 'bn'); 
-    renderAllLangs(); updateClocks(); getMoonPhase(); updateSunMoonPos(); renderGrocery();
+    renderAllLangs(); updateClocks(); renderGrocery();
     document.querySelectorAll('.section').forEach(s => triggerCalc(s.id));
 }
 
@@ -812,7 +798,25 @@ function showSection(id){
     $('homeNavBtn').style.display = (id === 'home') ? 'none' : 'flex'; 
     el.scrollTop = 0;
 }
-function onMenuClick(id){ showSection(id); toggleMenu(); }
+function onMenuClick(id){ if(isMenuEditMode) return; showSection(id); toggleMenu(); }
+
+function toggleMenuEdit() {
+    isMenuEditMode = !isMenuEditMode;
+    const list = $('menuList');
+    const btn = $('menuEditBtn');
+    if(isMenuEditMode) {
+        list.classList.add('edit-mode');
+        btn.innerHTML = `<i class="ph-bold ph-check"></i> Done`;
+        sortableMenu.option("disabled", false);
+    } else {
+        list.classList.remove('edit-mode');
+        btn.innerHTML = `<i class="ph-bold ph-pencil"></i> Edit`;
+        sortableMenu.option("disabled", true);
+        const order = sortableMenu.toArray();
+        localStorage.setItem('dlc_menu_order', JSON.stringify(order));
+    }
+}
+
 function toBn(num) { 
   if(num === undefined || num === null) return num; 
   let s = num.toString();
@@ -820,28 +824,21 @@ function toBn(num) {
   return s;
 }
 
-/* --- GROCERY LIST LOGIC --- */
 function renderGrocery() {
   const container = $('groceryDisplay');
   container.innerHTML = "";
-  
-  // Added for simple billing feature: Logic to calculate totals
   let totalBill = 0;
   
   groceryItems.forEach((item, index) => {
-    const itemPrice = parseFloat(item.price) || 0;
+    const itemPrice = Math.round(parseFloat(item.price) || 0);
     totalBill += itemPrice;
-
     const div = document.createElement('div');
     div.className = 'grocery-item';
-    
-    // Added for simple billing feature: Displaying price column
-    const priceText = item.price ? `₹ ${toBn(itemPrice.toFixed(2))}` : "-";
-    
+    const priceText = item.price ? `₹ ${toBn(itemPrice)}` : "-";
     div.innerHTML = `
       <div class="grocery-info">
         <span class="grocery-name">${item.name}</span>
-        <span class="grocery-qty">${toBn(item.qty)} ${item.unit}</span>
+        <span class="grocery-qty">${toBn(Math.round(item.qty))} ${item.unit}</span>
       </div>
       <div class="grocery-price-display">${priceText}</div>
       <div class="grocery-actions">
@@ -852,21 +849,17 @@ function renderGrocery() {
     container.appendChild(div);
   });
 
-  // Added for simple billing feature: Update summary totals
   $('gResTotalItems').textContent = toBn(groceryItems.length);
-  $('gResTotalBill').textContent = "₹ " + toBn(totalBill.toFixed(2));
+  $('gResTotalBill').textContent = "₹ " + toBn(Math.round(totalBill));
 }
 
 function saveGroceryItem() {
   const name = $('gItemName').value;
-  const qty = $('gItemQty').value;
+  const qty = Math.round($('gItemQty').value);
   const unit = $('gItemUnit').value;
-  const price = $('gItemPrice').value; // Added for simple billing feature
-
+  const price = Math.round($('gItemPrice').value);
   if (!name || !qty) return;
-
   saveHistory('grocery');
-
   if (editIdx > -1) {
     groceryItems[editIdx] = { name, qty, unit, price };
     editIdx = -1;
@@ -874,9 +867,8 @@ function saveGroceryItem() {
   } else {
     groceryItems.push({ name, qty, unit, price });
   }
-  
   localStorage.setItem('dlc_grocery', JSON.stringify(groceryItems));
-  $('gItemName').value = ""; $('gItemQty').value = ""; $('gItemPrice').value = ""; // Clear price
+  $('gItemName').value = ""; $('gItemQty').value = ""; $('gItemPrice').value = "";
   renderGrocery();
   updateUndoState('grocery');
 }
@@ -892,15 +884,14 @@ function deleteGroceryItem(index) {
 function editGroceryItem(index) {
   const item = groceryItems[index];
   $('gItemName').value = item.name;
-  $('gItemQty').value = item.qty;
+  $('gItemQty').value = Math.round(item.qty);
   $('gItemUnit').value = item.unit;
-  $('gItemPrice').value = item.price || ""; // Added for simple billing feature
+  $('gItemPrice').value = item.price ? Math.round(item.price) : "";
   editIdx = index;
   $('gAddBtn').textContent = isEn ? "Update Item" : "আপডেট করুন";
 }
 
 function clearGrocery() {
-  if (groceryItems.length === 0) return;
   saveHistory('grocery');
   groceryItems = [];
   localStorage.setItem('dlc_grocery', JSON.stringify(groceryItems));
@@ -908,17 +899,13 @@ function clearGrocery() {
   updateUndoState('grocery');
 }
 
-// Added for simple billing feature
 function clearAllPrices() {
-  if (groceryItems.length === 0) return;
   saveHistory('grocery');
   groceryItems = groceryItems.map(item => ({...item, price: ""}));
   localStorage.setItem('dlc_grocery', JSON.stringify(groceryItems));
   renderGrocery();
   updateUndoState('grocery');
 }
-
-/* --- EXPORT FUNCTIONS FOR GROCERY --- */
 
 function updateGroceryDate() {
     const d = new Date();
@@ -933,14 +920,10 @@ function exportGroceryPDF() {
         alert(isEn ? "Your grocery list is empty!" : "আপনার মুদি তালিকা খালি!");
         return;
     }
-
     const prefix = isEn ? "Grocery List" : "মুদি তালিকা";
     const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     const todayStr = new Date().toLocaleDateString(isEn ? 'en-US' : 'bn-IN', dateOptions);
-
-    // Added for simple billing feature
-    let totalBill = groceryItems.reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
-
+    let totalBill = groceryItems.reduce((acc, it) => acc + (Math.round(parseFloat(it.price)) || 0), 0);
     const opt = {
         margin: [15, 15, 15, 15],
         filename: `${prefix} - ${todayStr}.pdf`,
@@ -948,7 +931,6 @@ function exportGroceryPDF() {
         html2canvas: { scale: 3, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-
     const pdfContent = `
         <div style="font-family: sans-serif; padding: 10px; color: #000; width: 100%;">
             <div style="text-align: center; border-bottom: 6px solid #007AFF; padding-bottom: 10px; margin-bottom: 20px;">
@@ -967,19 +949,16 @@ function exportGroceryPDF() {
                     ${groceryItems.map(it => `
                         <tr style="border-bottom: 1px solid #eee;">
                             <td style="padding: 15px 12px; font-size: 28px; font-weight: bold;">${it.name}</td>
-                            <td style="padding: 15px 12px; font-size: 28px; text-align: center;">${toBn(it.qty)} ${it.unit}</td>
-                            <td style="padding: 15px 12px; font-size: 28px; text-align: right;">${it.price ? toBn(parseFloat(it.price).toFixed(2)) : ""}</td>
+                            <td style="padding: 15px 12px; font-size: 28px; text-align: center;">${toBn(Math.round(it.qty))} ${it.unit}</td>
+                            <td style="padding: 15px 12px; font-size: 28px; text-align: right;">${it.price ? toBn(Math.round(parseFloat(it.price))) : ""}</td>
                         </tr>
                     `).join('')}
                 </tbody>
             </table>
             <div style="margin-top: 20px; border-top: 4px solid #007AFF; padding-top: 10px; text-align: right;">
                 <p style="font-size: 36px; font-weight: bold; margin: 0; color: #007AFF;">
-                    ${isEn ? "Total Bill: ₹" : "মোট বিল: ₹"} ${toBn(totalBill.toFixed(2))}
+                    ${isEn ? "Total Bill: ₹" : "মোট বিল: ₹"} ${toBn(Math.round(totalBill))}
                 </p>
-            </div>
-            <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 10px;">
-                Generated by Daily Life Calculator
             </div>
         </div>
     `;
@@ -988,26 +967,16 @@ function exportGroceryPDF() {
 
 function exportGroceryExcel() {
   const table = $('groceryTable');
-  
-  // Added for simple billing feature: logic for excel total
-  let totalBill = groceryItems.reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
-  
-  // Update table HTML with new column
+  let totalBill = groceryItems.reduce((acc, it) => acc + (Math.round(parseFloat(it.price)) || 0), 0);
   let html = `<thead><tr><th>Item</th><th>Quantity</th><th>Unit</th><th>Price ₹</th></tr></thead><tbody>`;
-  html += groceryItems.map(it => `<tr><td>${it.name}</td><td>${it.qty}</td><td>${it.unit}</td><td>${it.price || ""}</td></tr>`).join('');
-  
-  // Added for simple billing feature: Excel Total row
-  html += `<tr><td colspan="3" style="font-weight:bold;">Total Bill</td><td style="font-weight:bold;">${totalBill.toFixed(2)}</td></tr>`;
+  html += groceryItems.map(it => `<tr><td>${it.name}</td><td>${Math.round(it.qty)}</td><td>${it.unit}</td><td>${Math.round(it.price) || ""}</td></tr>`).join('');
+  html += `<tr><td colspan="3" style="font-weight:bold;">Total Bill</td><td style="font-weight:bold;">${Math.round(totalBill)}</td></tr>`;
   html += `</tbody>`;
-  
   table.innerHTML = html;
-  
   const wb = XLSX.utils.table_to_book(document.getElementById("groceryTable"), {sheet:"Grocery"});
-
   const prefix = isEn ? "Grocery list" : "মুদি তালিকা";
   const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   const today = new Date().toLocaleDateString(isEn ? 'en-US' : 'bn-IN', dateOptions);
-
   XLSX.writeFile(wb, `${prefix} - ${today}.xlsx`);
 }
 
@@ -1022,14 +991,12 @@ function handleImport(e) {
     const rows = XLSX.utils.sheet_to_json(sheet);
     saveHistory('grocery');
     rows.forEach(row => {
-      // Avoid adding the total row as an item
       if(row.Item === "Total Bill") return;
-      
       groceryItems.push({
         name: row.Item || row.name || "Unknown",
-        qty: row.Quantity || row.qty || 1,
+        qty: Math.round(row.Quantity || row.qty || 1),
         unit: row.Unit || row.unit || "পিস",
-        price: row['Price ₹'] || row.price || ""
+        price: row['Price ₹'] ? Math.round(row['Price ₹']) : ""
       });
     });
     localStorage.setItem('dlc_grocery', JSON.stringify(groceryItems));
@@ -1039,47 +1006,29 @@ function handleImport(e) {
   reader.readAsArrayBuffer(file);
 }
 
-/* --- CALCULATION LOGIC --- */
-
 function calc() {
     const pricePerKg = parseFloat($('price').value) || 0;
     const weightValue = parseFloat($('weight').value) || 0;
     const unit = $('unit').value;
     const payAmount = parseFloat($('amount').value) || 0;
-
-    // A. Weight to Price (Total Price Calculation)
     let totalPrice = 0;
     if (pricePerKg > 0 && weightValue > 0) {
-        if (unit === 'kg') {
-            totalPrice = pricePerKg * weightValue;
-        } else {
-            totalPrice = (pricePerKg / 1000) * weightValue;
-        }
+        totalPrice = (unit === 'kg') ? (pricePerKg * weightValue) : ((pricePerKg / 1000) * weightValue);
     }
-    $('total').textContent = "₹ " + toBn(totalPrice.toFixed(2));
-
-    // B. Price to Weight (Reverse Calculation)
+    $('total').textContent = "₹ " + toBn(Math.round(totalPrice));
     let weightResult = 0;
-    if (pricePerKg > 0 && payAmount > 0) {
-        weightResult = (payAmount / pricePerKg) * 1000;
-    }
-    $('result').textContent = toBn(weightResult.toFixed(2)) + " g";
+    if (pricePerKg > 0 && payAmount > 0) weightResult = (payAmount / pricePerKg) * 1000;
+    $('result').textContent = toBn(Math.round(weightResult)) + " g";
 }
 
 function doEmiCalc() {
     const P=+$('emiPrincipal').value, R=+$('emiRate').value, N=+$('emiYears').value;
     if(P && N) {
-        let emi;
-        if (R > 0) {
-            const r=R/12/100, n=N*12;
-            emi=(P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
-        } else {
-            emi = P / (N * 12); 
-        }
-        $('resEmi').textContent=toBn(emi.toFixed(2));
+        let emi = (R > 0) ? (P*(R/12/100)*Math.pow(1+(R/12/100),N*12))/(Math.pow(1+(R/12/100),N*12)-1) : P/(N*12);
+        $('resEmi').textContent=toBn(Math.round(emi));
         const totalPay = emi * N * 12;
-        $('resTotalPay').textContent=toBn(totalPay.toFixed(2));
-        $('resTotalInt').textContent=toBn((totalPay - P).toFixed(2));
+        $('resTotalPay').textContent=toBn(Math.round(totalPay));
+        $('resTotalInt').textContent=toBn(Math.round(totalPay - P));
         $('emiBarInt').style.width = ((totalPay - P) / totalPay * 100) + "%";
     }
 }
@@ -1087,156 +1036,31 @@ function doEmiCalc() {
 function doAgeCalc() {
     const val = $('dobInput').value; if(!val) { $('funContainer').style.display = 'none'; return; }
     const b = new Date(val), n = new Date();
-    if(isNaN(b.getTime())) return;
-    if(b > n) { 
-        $('resYears').textContent=toBn((0).toFixed(2)); $('resMonths').textContent=toBn((0).toFixed(2)); $('resDays').textContent=toBn((0).toFixed(2));
+    if(isNaN(b.getTime()) || b > n) { 
+        $('resYears').textContent=toBn(0); $('resMonths').textContent=toBn(0); $('resDays').textContent=toBn(0);
         $('funContainer').style.display = 'none'; return;
     }
     let y = n.getFullYear()-b.getFullYear(), m = n.getMonth()-b.getMonth(), d = n.getDate()-b.getDate();
     if(d<0){ m--; d+=new Date(n.getFullYear(), n.getMonth(), 0).getDate(); }
     if(m<0){ y--; m+=12; }
-    $('resYears').textContent=toBn(y.toFixed(2)); $('resMonths').textContent=toBn(m.toFixed(2)); $('resDays').textContent=toBn(d.toFixed(2));
-    
+    $('resYears').textContent=toBn(y); $('resMonths').textContent=toBn(m); $('resDays').textContent=toBn(d);
     let next = new Date(n.getFullYear(), b.getMonth(), b.getDate());
     if (next < n) next.setFullYear(n.getFullYear() + 1);
-    let diff = next - n;
-    let daysToNext = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    
-    $('resNextBday').textContent = toBn(daysToNext.toFixed(2)) + (isEn ? " days" : " দিন");
+    let daysToNext = Math.ceil((next - n) / (1000 * 60 * 60 * 24));
+    $('resNextBday').textContent = toBn(daysToNext) + (isEn ? " days" : " দিন");
     $('funContainer').style.display = 'block';
-    $('resTotDays').textContent = toBn(Math.floor((n-b)/(1000*60*60*24)).toFixed(2));
-    $('resTotMonths').textContent = toBn((y * 12 + m).toFixed(2));
-    $('resTotWeeks').textContent = toBn((Math.floor((n-b)/(1000*60*60*24*7))).toFixed(2));
+    $('resTotDays').textContent = toBn(Math.floor((n-b)/(1000*60*60*24)));
+    $('resTotMonths').textContent = toBn(y * 12 + m);
+    $('resTotWeeks').textContent = toBn(Math.floor((n-b)/(1000*60*60*24*7)));
     const daysArr = isEn ? ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"] : ["রবিবার","সোমবার","মঙ্গলবার","বুধবার","বৃহস্পতিবার","শুক্রবার","শনিবার"];
     $('resBornDay').textContent = daysArr[b.getDay()];
-    
-    const zodiacs = [
-      { n: "Capricorn", bn: "মকর", d: [1, 20] }, { n: "Aquarius", bn: "কুম্ভ", d: [2, 18] },
-      { n: "Pisces", bn: "মীন", d: [3, 20] }, { n: "Aries", bn: "মেষ", d: [4, 19] },
-      { n: "Taurus", bn: "বৃষ", d: [5, 20] }, { n: "Gemini", bn: "মিথুন", d: [6, 20] },
-      { n: "Cancer", bn: "কর্কট", d: [7, 22] }, { n: "Leo", bn: "সিংহ", d: [8, 22] },
-      { n: "Virgo", bn: "কন্যা", d: [9, 22] }, { n: "Libra", bn: "তুলা", d: [10, 22] },
-      { n: "Scorpio", bn: "বৃশ্চিক", d: [11, 21] }, { n: "Sagittarius", bn: "ধনু", d: [12, 21] },
-      { n: "Capricorn", bn: "মকর", d: [12, 31] }
-    ];
-    let zodiac = zodiacs.find(z => (b.getMonth() + 1 < z.d[0]) || (b.getMonth() + 1 === z.d[0] && b.getDate() <= z.d[1]));
-    $('resZodiac').textContent = isEn ? zodiac.n : zodiac.bn;
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-    const accent = localStorage.getItem('dlc_accent') || '#007AFF';
-    changeAccent(accent);
-    
-    const savedName = localStorage.getItem('dlc_username');
-    if(savedName) $('userNameInput').value = savedName;
-
-    circles = {
-        hour: document.querySelector('.hour'),
-        min: document.querySelector('.min'),
-        sec: document.querySelector('.sec')
-    };
-    Object.values(circles).forEach(c => {
-        if (c) {
-            const r = c.r.baseVal.value;
-            c.len = 2 * Math.PI * r;
-            c.style.strokeDasharray = c.len;
-        }
-    });
-
-    const temp = $('miniClockTemp')?.content;
-    if(temp) { document.querySelectorAll('.clock-inject').forEach(div => { if(div.children.length === 0) div.appendChild(temp.cloneNode(true)); }); }
-    
-    initCash(); initCurSelects(); updateCvUnits(); getMoonPhase(); renderAllLangs(); updateSunMoonPos(); renderGrocery();
-    
-    updateGroceryDate();
-    $('importFile').addEventListener('change', handleImport);
-
-    const menuList = $('menuList'); if(menuList) Sortable.create(menuList, { animation: 150 });
-    
-    document.querySelectorAll('.section').forEach(sec => { if(sec.id !== 'home') saveHistory(sec.id); });
-
-    document.querySelectorAll('input, select').forEach(el => {
-        el.addEventListener('input', () => { 
-            const sid = el.closest('.section')?.id;
-            if(sid) { if(sid !== 'grocery') saveHistory(sid); triggerCalc(sid); }
-        });
-        el.addEventListener('change', () => { 
-            const sid = el.closest('.section')?.id;
-            if(sid) { if(sid !== 'grocery') saveHistory(sid); triggerCalc(sid); }
-        });
-    });
-
-    setTimeout(() => { const splash = $('welcomeSplash'); if(splash) splash.classList.add('fade-out'); }, 2000);
-});
-
-function getMoonPhase() {
-    const now = new Date();
-    const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
-    let yy = y, mm = m; if (mm < 3) { yy--; mm += 12; } mm++;
-    let jd = 365.25 * yy + 30.6 * mm + d - 694039.09; jd /= 29.530588853; 
-    let b = Math.round((jd - parseInt(jd)) * 8); if (b >= 8) b = 0;
-    const phases = [
-        { en: "New Moon", bn: "অমাবস্যা", icon: "🌑" }, { en: "Waxing Crescent", bn: "শুক্লপক্ষ (কলা)", icon: "🌒" },
-        { en: "First Quarter", bn: "শুক্লপক্ষ (অর্ধচন্দ্র)", icon: "🌓" }, { en: "Waxing Gibbous", bn: "শুক্লপক্ষ (কুব্জচন্দ্র)", icon: "🌔" },
-        { en: "Full Moon", bn: "পূর্ণিমা", icon: "🌕" }, { en: "Waning Gibbous", bn: "কৃষ্ণপক্ষ (কুব্জচন্দ্র)", icon: "🌖" },
-        { en: "Last Quarter", bn: "কৃষ্ণপক্ষ (অর্ধচন্দ্র)", icon: "🌗" }, { en: "Waning Crescent", bn: "কৃষ্ণপক্ষ (কলা)", icon: "🌘" }
-    ];
-    const iconEl = $('moonIcon'), nameEl = $('moonName');
-    if(iconEl) iconEl.textContent = phases[b].icon;
-    if(nameEl) nameEl.textContent = phases[b].bn; 
 }
 
 function getBengaliCalendarDate(date) {
     const months = ["বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ", "পৌষ", "মাঘ", "ফালগুন", "চৈত্র"];
-    let gDay = date.getDate(), gMonth = date.getMonth(), gYear = date.getFullYear();
-    let bnYear = gYear - 593;
-    if (gMonth < 3 || (gMonth === 3 && gDay < 15)) bnYear--;
-    const wbStarts = [
-        {m:3, d:15}, {m:4, d:16}, {m:5, d:16}, {m:6, d:17}, {m:7, d:17}, {m:8, d:17},
-        {m:9, d:17}, {m:10, d:16}, {m:11, d:16}, {m:0, d:15}, {m:1, d:14}, {m:2, d:15}
-    ];
-    let bnMonthIdx = 0, bnDay = 0;
-    for(let i = 0; i < 12; i++) {
-        let currentMonthStart = new Date(gYear, wbStarts[i].m, wbStarts[i].d);
-        let nextMonthIdx = (i + 1) % 12;
-        let nYear = gYear + (i >= 9 && nextMonthIdx < 9 ? 1 : 0);
-        let nextMonthStart = new Date(nYear, wbStarts[nextMonthIdx].m, wbStarts[nextMonthIdx].d);
-        if(date >= currentMonthStart || i === 11) {
-            if (i === 11 && date < new Date(gYear, wbStarts[0].m, wbStarts[0].d)) {
-                bnMonthIdx = 11;
-                let prevChaitraStart = new Date(gYear - 1, wbStarts[11].m, wbStarts[11].d);
-                bnDay = Math.floor((date - prevChaitraStart) / 86400000) + 1;
-                break;
-            }
-            if (date < nextMonthStart || i === 8) {
-                bnMonthIdx = i;
-                bnDay = Math.floor((date - currentMonthStart) / 86400000) + 1;
-                break;
-            }
-        }
-    }
-    return `${toBn(bnDay)} ${months[bnMonthIdx]}, ${toBn(bnYear)}`;
-}
-
-function updateSunMoonPos() {
-    const now = new Date();
-    const hours = now.getHours();
-    const isDay = hours >= 6 && hours < 18;
-    const titleEl = $('astroTitle'), altEl = $('astroAlt'), dirEl = $('astroDir');
-    if(!titleEl) return;
-    titleEl.textContent = isDay ? "সূর্যের অবস্থান" : "চাঁদের অবস্থান";
-    const totalMinutes = hours * 60 + now.getMinutes();
-    let altitude = 0, direction = "উত্তর";
-    if (isDay) {
-        altitude = Math.sin((totalMinutes - 360) / 720 * Math.PI) * 90;
-        direction = totalMinutes < 720 ? "পূর্ব" : "পশ্চিম";
-    } else {
-        let mMin = totalMinutes < 360 ? totalMinutes + 1440 : totalMinutes;
-        altitude = Math.sin((mMin - 1080) / 720 * Math.PI) * 80;
-        direction = mMin < 1440 ? "পূর্ব" : "পশ্চিম";
-    }
-    altEl.textContent = `উচ্চতা: ${toBn(Math.abs(altitude).toFixed(2))}°`;
-    dirEl.textContent = `দিক: ${direction}`;
+    let bnYear = date.getFullYear() - 593;
+    if (date.getMonth() < 3 || (date.getMonth() === 3 && date.getDate() < 15)) bnYear--;
+    return `${toBn(date.getDate())} ${months[date.getMonth()]}, ${toBn(bnYear)}`;
 }
 
 let lastSec = -1;
@@ -1252,12 +1076,9 @@ function updateClocks(){
     if(circles.sec) circles.sec.style.strokeDashoffset = circles.sec.len - (s/60)*circles.sec.len;
     if(circles.min) circles.min.style.strokeDashoffset = circles.min.len - ((m+s/60)/60)*circles.min.len;
     if(circles.hour) circles.hour.style.strokeDashoffset = circles.hour.len - ((h+m/60)/12)*circles.hour.len;
-    
-    const timeEl = $('time'), dateEl = $('date'), bnCalEl = $('bnCalendar');
-    if(timeEl) timeEl.textContent = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    if(dateEl) dateEl.textContent = d.toLocaleDateString(isEn?'en-IN':'bn-IN',{weekday:'long',day:'numeric',month:'short'});
-    if(bnCalEl) bnCalEl.textContent = getBengaliCalendarDate(d);
-    
+    if($('time')) $('time').textContent = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    if($('date')) $('date').textContent = d.toLocaleDateString(isEn?'en-IN':'bn-IN',{weekday:'long',day:'numeric',month:'short'});
+    if($('bnCalendar')) $('bnCalendar').textContent = getBengaliCalendarDate(d);
     document.querySelectorAll('.mini-clock').forEach(mc => {
         const mcH = mc.querySelector('.mc-h'), mcM = mc.querySelector('.mc-m'), mcS = mc.querySelector('.mc-s'), mcAmPm = mc.querySelector('.mc-ampm');
         if(mcH) mcH.textContent = (hRaw%12||12).toString().padStart(2,'0');
@@ -1265,10 +1086,35 @@ function updateClocks(){
         if(mcS && s !== lastSec) { mcS.textContent = s.toString().padStart(2,'0'); mcS.classList.remove('flip'); void mcS.offsetWidth; mcS.classList.add('flip'); }
         if(mcAmPm) mcAmPm.textContent = hRaw>=12?"PM":"AM";
     });
-    if (s % 30 === 0) updateSunMoonPos();
     lastSec = s;
 }
 setInterval(updateClocks, 1000);
+
+window.addEventListener('DOMContentLoaded', () => {
+    changeAccent(localStorage.getItem('dlc_accent') || '#007AFF');
+    if(localStorage.getItem('dlc_username')) $('userNameInput').value = localStorage.getItem('dlc_username');
+    circles = { hour: document.querySelector('.hour'), min: document.querySelector('.min'), sec: document.querySelector('.sec') };
+    Object.values(circles).forEach(c => { if (c) { const r = c.r.baseVal.value; c.len = 2 * Math.PI * r; c.style.strokeDasharray = c.len; } });
+    const temp = $('miniClockTemp')?.content;
+    if(temp) document.querySelectorAll('.clock-inject').forEach(div => { if(div.children.length === 0) div.appendChild(temp.cloneNode(true)); });
+    initCash(); initCurSelects(); updateCvUnits(); renderAllLangs(); renderGrocery(); updateGroceryDate();
+    $('importFile').addEventListener('change', handleImport);
+    
+    sortableMenu = Sortable.create($('menuList'), { 
+        animation: 150, 
+        disabled: true, 
+        dataIdAttr: 'id'
+    });
+    const savedOrder = localStorage.getItem('dlc_menu_order');
+    if(savedOrder) sortableMenu.sort(JSON.parse(savedOrder));
+
+    document.querySelectorAll('.section').forEach(sec => { if(sec.id !== 'home') saveHistory(sec.id); });
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', () => { const sid = el.closest('.section')?.id; if(sid && sid !== 'grocery') { saveHistory(sid); triggerCalc(sid); } });
+        el.addEventListener('change', () => { const sid = el.closest('.section')?.id; if(sid && sid !== 'grocery') { saveHistory(sid); triggerCalc(sid); } });
+    });
+    setTimeout(() => { if($('welcomeSplash')) $('welcomeSplash').classList.add('fade-out'); }, 2000);
+});
 
 function triggerCalc(secId) {
     if(secId==='rate') calc(); if(secId==='fuel') doFuelCalc(); if(secId==='age') doAgeCalc(); if(secId==='emi') doEmiCalc(); if(secId==='percent') doPercentCalc(); if(secId==='converter') doConvert(); if(secId==='currency') convertCurrency(); if(secId==='cash') doCash();
@@ -1276,56 +1122,48 @@ function triggerCalc(secId) {
 }
 function renderAllLangs() {
     const currentDict = isEn ? dict.en : dict.bn;
-    document.querySelectorAll('[data-lang]').forEach(el => {
-        const key = el.getAttribute('data-lang'); if(currentDict[key]) el.textContent = currentDict[key];
-    });
+    document.querySelectorAll('[data-lang]').forEach(el => { const key = el.getAttribute('data-lang'); if(currentDict[key]) el.textContent = currentDict[key]; });
     $('settingLangBtn').innerHTML = isEn ? '<i class="ph-bold ph-globe"></i> EN' : '<i class="ph-bold ph-globe"></i> BN';
-    if(editIdx === -1) { $('gAddBtn').textContent = isEn ? "Add Item" : "যোগ করুন"; }
+    if(editIdx === -1) $('gAddBtn').textContent = isEn ? "Add Item" : "যোগ করুন";
     updateGroceryDate();
 }
 
 function doFuelCalc(){
-    const dist=+$('fuelDist').value, mil=+$('fuelMil').value, prc=+$('fuelPrice').value, spd=+$('fuelSpeed').value;
-    if(dist && mil > 0) {
-        const fuel = dist/mil;
-        $('resFCost').textContent= toBn((fuel*prc).toFixed(2));
-        $('resFFuel').textContent= toBn(fuel.toFixed(2)) + (isEn ? " L" : " লি.");
-        if(spd > 0) {
-          const totalHours = dist/spd;
-          const h = Math.floor(totalHours);
-          const m = Math.round((totalHours - h) * 60);
-          $('resFTime').textContent = toBn(h.toFixed(2)) + "h " + toBn(m.toFixed(2)) + "m";
-        }
-        else $('resFTime').textContent = toBn((0).toFixed(2)) + "m";
+    const d=+$('fuelDist').value, m=+$('fuelMil').value, p=+$('fuelPrice').value, s=+$('fuelSpeed').value;
+    if(d && m > 0) {
+        const fuel = d/m;
+        $('resFCost').textContent= toBn(Math.round(fuel*p));
+        $('resFFuel').textContent= toBn(Math.round(fuel)) + (isEn ? " L" : " লি.");
+        if(s > 0) {
+          const tH = d/s, h = Math.floor(tH), min = Math.round((tH - h) * 60);
+          $('resFTime').textContent = toBn(h) + "h " + toBn(min) + "m";
+        } else $('resFTime').textContent = toBn(0) + "m";
     }
 }
 async function convertCurrency(){
     const f=$('curFrom').value, t=$('curTo').value, a=+$('curAmount').value;
-    const resEl = $('curResult'), infoEl = $('curRateInfo');
-    if(!resEl || a <= 0) return;
-    if(f === t) { resEl.textContent = f + " " + a.toFixed(2); infoEl.textContent = `1 ${f} = 1.00 ${t}`; return; }
+    if(!$('curResult') || a <= 0) return;
+    if(f === t) { $('curResult').textContent = f + " " + Math.round(a); $('curRateInfo').textContent = `1 ${f} = 1 ${t}`; return; }
     try {
         const r = await fetch(`https://api.exchangerate-api.com/v4/latest/${f}`);
         const d = await r.json();
         const rate = d.rates[t];
-        resEl.textContent = t + " " + (a * rate).toFixed(2);
-        infoEl.textContent = `1 ${f} = ${toBn(rate.toFixed(2))} ${t}`;
-    } catch(e) { resEl.textContent = isEn ? "Offline" : "অফলাইন"; }
+        $('curResult').textContent = t + " " + Math.round(a * rate);
+        $('curRateInfo').textContent = `1 ${f} = ${toBn(Math.round(rate))} ${t}`;
+    } catch(e) { $('curResult').textContent = isEn ? "Offline" : "অফলাইন"; }
 }
 function initCurSelects(){
     const cf=$('curFrom'), ct=$('curTo'); if(!cf) return;
-    const codes = [{c:"USD", n:"US Dollar"}, {c:"INR", n:"Indian Rupee"}, {c:"BDT", n:"Bangladeshi Taka"}, {c:"EUR", n:"Euro"}, {c:"GBP", n:"British Pound"}, {c:"JPY", n:"Japanese Yen"}, {c:"AUD", n:"Australian Dollar"}, {c:"CAD", n:"Canadian Dollar"}, {c:"CHF", n:"Swiss Franc"}, {c:"CNY", n:"Chinese Yuan"}, {c:"RUB", n:"Russian Ruble"}, {c:"AED", n:"Emirati Dirham"}, {c:"SAR", n:"Saudi Riyal"}, {c:"PKR", n:"Pakistani Rupee"}, {c:"SGD", n:"Singapore Dollar"}];
+    const codes = [{c:"USD", n:"US Dollar"}, {c:"INR", n:"Indian Rupee"}, {c:"BDT", n:"Bangladeshi Taka"}, {c:"EUR", n:"Euro"}, {c:"GBP", n:"British Pound"}];
     codes.forEach(cur => { cf.add(new Option(`${cur.c} - ${cur.n}`, cur.c)); ct.add(new Option(`${cur.c} - ${cur.n}`, cur.c)); });
     cf.value="USD"; ct.value="INR";
 }
-function swapCurrency(){ const f=$('curFrom'), t=$('curTo'); const v=f.value; f.value=t.value; t.value=v; convertCurrency(); }
+function swapCurrency(){ const f=$('curFrom'), t=$('curTo'), v=f.value; f.value=t.value; t.value=v; convertCurrency(); }
 
 const cvData = {
-    len: { en: "Length", bn: "দৈর্ঘ্য", units: { m: 1, km: 1000, cm: 0.01, mm: 0.001, mi: 1609.34, yd: 0.9144, ft: 0.3048, in: 0.0254 }, names: { m: "Meter", km: "KM", cm: "CM", mm: "MM", mi: "Mile", yd: "Yard", ft: "Feet", in: "Inch" }},
-    wgt: { en: "Weight", bn: "ওজন", units: { kg: 1, g: 0.001, mg: 0.000001, lb: 0.453592, oz: 0.0283495 }, names: { kg: "KG", g: "Gram", mg: "MG", lb: "Pound", oz: "Ounce" }},
-    vol: { en: "Volume", bn: "আয়তন", units: { l: 1, ml: 0.001, gal: 3.78541, qt: 0.946353, cup: 0.236588 }, names: { l: "Liter", ml: "ML", gal: "Gallon", qt: "Quart", cup: "Cup" }},
-    temp: { en: "Temp", bn: "তাপমাত্রা", type: "special", units: { c: "C", f: "F", k: "K" }, names: { c: "Celsius", f: "Fahrenheit", k: "Kelvin" }},
-    area: { en: "Area", bn: "ক্ষেত্রফল", units: { sqm: 1, sqkm: 1000000, acre: 4046.86, hectare: 10000, sqft: 0.092903 }, names: { sqm: "Sq Meter", sqkm: "Sq KM", acre: "Acre", hectare: "Hectare", sqft: "Sq Feet" }}
+    len: { en: "Length", bn: "দৈর্ঘ্য", units: { m: 1, km: 1000, cm: 0.01, mm: 0.001 }, names: { m: "Meter", km: "KM", cm: "CM", mm: "MM" }},
+    wgt: { en: "Weight", bn: "ওজন", units: { kg: 1, g: 0.001, mg: 0.000001 }, names: { kg: "KG", g: "Gram", mg: "MG" }},
+    temp: { en: "Temp", bn: "তাপমাত্রা", type: "special", units: { c: "C", f: "F" }, names: { c: "Celsius", f: "Fahrenheit" }}
 };
 function updateCvUnits() {
     const catSelect = $('cvCat'); if(!catSelect) return;
@@ -1337,25 +1175,16 @@ function updateCvUnits() {
 function doConvert() {
     const cat=$('cvCat').value, val=+$('cvIn').value, u1=$('cvUnitFrom').value, u2=$('cvUnitTo').value;
     let res = 0;
-    if(cvData[cat].type === "special") {
-      if(u1 === 'c' && u2 === 'f') res = (val * 9/5) + 32;
-      else if(u1 === 'f' && u2 === 'c') res = (val - 32) * 5/9;
-      else if(u1 === 'c' && u2 === 'k') res = val + 273.15;
-      else if(u1 === 'k' && u2 === 'c') res = val - 273.15;
-      else if(u1 === 'f' && u2 === 'k') res = (val - 32) * 5/9 + 273.15;
-      else if(u1 === 'k' && u2 === 'f') res = (val - 273.15) * 9/5 + 32;
-      else res = val;
-    } else {
-      res = (val * cvData[cat].units[u1]) / cvData[cat].units[u2];
-    }
-    $('cvOut').value = toBn(res.toFixed(2));
+    if(cvData[cat].type === "special") res = (u1==='c' && u2==='f') ? (val*9/5)+32 : (u1==='f' && u2==='c') ? (val-32)*5/9 : val;
+    else res = (val * cvData[cat].units[u1]) / cvData[cat].units[u2];
+    $('cvOut').value = toBn(Math.round(res));
 }
 function doPercentCalc(){
     const m=$('pcMode').value, v1=+$('pcIn1').value, v2=+$('pcIn2').value;
     let r = 0;
-    if(m === '1' && v2 !== 0) r = ((v1/v2)*100).toFixed(2) + "%";
-    else if(m === '2') r = ((v1/100)*v2).toFixed(2);
-    else if(m === '3' && v1 !== 0) r = (((v2-v1)/v1)*100).toFixed(2) + "%";
+    if(m === '1' && v2 !== 0) r = Math.round((v1/v2)*100) + "%";
+    else if(m === '2') r = Math.round((v1/100)*v2);
+    else if(m === '3' && v1 !== 0) r = Math.round(((v2-v1)/v1)*100) + "%";
     $('pcRes').textContent = toBn(r);
 }
 const notes = [500, 200, 100, 50, 20, 10, 5, 2, 1];
@@ -1364,30 +1193,25 @@ function initCash() {
     list.innerHTML = "";
     notes.forEach(n => {
         const div = document.createElement('div'); div.className = 'info-row';
-        div.innerHTML = `<span>₹${toBn(n)}</span><input type="number" id="n${n}" inputmode="numeric" oninput="doCash()" style="width:70px; height:32px; text-align:center;" aria-label="${n} Rupee Notes">`;
+        div.innerHTML = `<span>₹${toBn(n)}</span><input type="number" id="n${n}" inputmode="numeric" oninput="doCash()" style="width:70px; height:32px; text-align:center;">`;
         list.appendChild(div);
     });
 }
 function doCash() {
-    let total = 0; notes.forEach(n => { const el = $('n'+n); total += (Math.floor(+(el?.value||0)) || 0) * n; });
-    $('resCashTotal').textContent = "₹ " + toBn(total.toFixed(2));
+    let total = 0; notes.forEach(n => { total += (Math.floor(+$('n'+n)?.value||0)) * n; });
+    $('resCashTotal').textContent = "₹ " + toBn(Math.round(total));
 }
 function clearData(secId) { 
     document.querySelectorAll(`#${secId} input`).forEach(i=>i.value=""); 
+    const resultSpans = document.querySelectorAll(`#${secId} .total, #${secId} .info-val`);
+    resultSpans.forEach(s => { s.textContent = s.id.includes('Next') ? "-" : "0"; });
     saveHistory(secId);
-    triggerCalc(sid); 
 }
-function clearCash() { notes.forEach(n=>{ const el = $('n'+n); if(el) el.value=""; }); doCash(); }
+function clearCash() { notes.forEach(n=>{ if($('n'+n)) $('n'+n).value=""; }); doCash(); }
 
 function saveHistory(secId) {
     const sec = $(secId); if(!sec) return;
-    let state = {};
-    if (secId === 'grocery') {
-      state = JSON.stringify(groceryItems);
-    } else {
-      sec.querySelectorAll('input, select').forEach(el => { if(el.id) state[el.id] = el.value; });
-      state = JSON.stringify(state);
-    }
+    let state = (secId === 'grocery') ? JSON.stringify(groceryItems) : JSON.stringify(Array.from(sec.querySelectorAll('input, select')).reduce((acc, el) => { if(el.id) acc[el.id] = el.value; return acc; }, {}));
     if(!historyStack[secId]) historyStack[secId] = [];
     if(historyStack[secId].length === 0 || state !== historyStack[secId][historyStack[secId].length - 1]) {
         historyStack[secId].push(state);
@@ -1395,10 +1219,7 @@ function saveHistory(secId) {
     }
     updateUndoState(secId);
 }
-function updateUndoState(secId) {
-    const btn = $(`undo-${secId}`);
-    if(btn) btn.disabled = (!historyStack[secId] || historyStack[secId].length < 2);
-}
+function updateUndoState(secId) { const btn = $(`undo-${secId}`); if(btn) btn.disabled = (!historyStack[secId] || historyStack[secId].length < 2); }
 function undoData(secId) {
     if(!historyStack[secId] || historyStack[secId].length < 2) return;
     historyStack[secId].pop(); 
@@ -1409,18 +1230,16 @@ function undoData(secId) {
       renderGrocery();
     } else {
       const lastState = JSON.parse(lastStateRaw);
-      for (const id in lastState) { const el = $(id); if(el) el.value = lastState[id]; }
+      for (const id in lastState) { if($(id)) $(id).value = lastState[id]; }
       triggerCalc(secId); 
     }
 }
 
 function readResult(secId) {
     if(window.speechSynthesis.speaking) window.speechSynthesis.cancel();
-    const section = $(secId); if(!section) return;
-    const totals = Array.from(section.querySelectorAll('.total')).map(t => t.innerText).filter(txt => txt && !txt.includes("₹ 0") && txt !== "0" && txt !== "...");
+    const totals = Array.from($(secId).querySelectorAll('.total')).map(t => t.innerText).filter(txt => txt && !txt.includes("₹ 0") && txt !== "0" && txt !== "...");
     if (totals.length === 0) return;
-    const text = isEn ? `The results are: ${totals.join(', ')}` : `ফলাফল হলো: ${totals.join(', ')}`;
-    const msg = new SpeechSynthesisUtterance(text);
+    const msg = new SpeechSynthesisUtterance(isEn ? `The results are: ${totals.join(', ')}` : `ফলাফল হলো: ${totals.join(', ')}`);
     msg.lang = isEn ? 'en-IN' : 'bn-IN';
     window.speechSynthesis.speak(msg);
 }
@@ -1428,17 +1247,11 @@ function readResult(secId) {
 function shareAsText(secId) {
     const section = $(secId); if(!section) return;
     const title = section.querySelector('h2').innerText;
-    let results = "";
-    if(secId === 'grocery') {
-      // Updated share logic to include price
-      results = groceryItems.map(it => `- ${it.name}: ${it.qty} ${it.unit} ${it.price ? '(₹' + it.price + ')' : ''}`).join('\n');
-    } else {
-      results = Array.from(section.querySelectorAll('.box, .info-row')).map(b => {
-          const label = (b.querySelector('span:first-child')?.innerText || b.querySelector('.info-label')?.innerText || "").trim();
-          const val = (b.querySelector('.total')?.innerText || b.querySelector('.info-val')?.innerText || "").trim();
-          return (label && val) ? `${label}: ${val}` : "";
-      }).filter(x => x).join('\n');
-    }
+    let results = (secId === 'grocery') ? groceryItems.map(it => `- ${it.name}: ${Math.round(it.qty)} ${it.unit} ${it.price ? '(₹' + Math.round(it.price) + ')' : ''}`).join('\n') : Array.from(section.querySelectorAll('.box, .info-row')).map(b => {
+        const label = (b.querySelector('span:first-child')?.innerText || b.querySelector('.info-label')?.innerText || "").trim();
+        const val = (b.querySelector('.total')?.innerText || b.querySelector('.info-val')?.innerText || "").trim();
+        return (label && val) ? `${label}: ${val}` : "";
+    }).filter(x => x).join('\n');
     const fullText = `${title}\n---\n${results}\n\nShared via Daily Life Calculator`;
     if(navigator.share) navigator.share({ title: title, text: fullText });
     else navigator.clipboard.writeText(fullText).then(() => alert(isEn ? "Copied!" : "কপি করা হয়েছে!"));
@@ -1449,13 +1262,8 @@ async function shareAsImage(secId) {
     try {
         const canvas = await html2canvas(section, { backgroundColor: null, scale: 2 });
         canvas.toBlob(async (blob) => {
-            if (!blob) return;
             const file = new File([blob], `${secId}_result.png`, { type: 'image/png' });
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({ files: [file], title: 'Calculator Result' });
-            } else {
-                alert(isEn ? "Share API not supported." : "আপনার ডিভাইসে শেয়ার সম্ভব নয়।");
-            }
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: 'Calculator Result' });
         });
     } catch(e) { console.error(e); }
 }
