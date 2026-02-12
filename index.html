@@ -369,7 +369,7 @@ select, input, datalist {
 <button class="ui-btn hamburger" onclick="toggleMenu(); playClick()" aria-label="Menu"><span></span><span></span><span></span></button>
 
 <div class="side-menu">
- <div class="menu-version-top">v1.3.1</div> 
+ <div class="menu-version-top">v1.3.3</div> 
  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
     <div style="font-size:24px; font-weight:700;" data-lang="menuTitle">Menu</div>
     <button id="menuEditBtn" class="mini-btn" onclick="toggleMenuEdit()" style="width:auto; padding:5px 10px; margin-bottom:0;"><i class="ph-bold ph-pencil"></i> Edit</button>
@@ -429,13 +429,16 @@ select, input, datalist {
     <div class="header-row">
       <h2 data-lang="mGroc">Grocery List</h2>
       <div class="btn-group">
+        <button class="lang-btn voice-btn" onclick="speakGroceryList(); playClick()" title="Speak List"><i class="ph-bold ph-speaker-high"></i></button>
         <button class="lang-btn export-pdf-btn" onclick="exportGroceryPDF(); playClick()" title="Export PDF"><i class="ph-bold ph-file-pdf"></i></button>
         <button class="lang-btn export-excel-btn" onclick="exportGroceryExcel(); playClick()" title="Export Excel"><i class="ph-bold ph-file-xls"></i></button>
         <button class="lang-btn export-excel-btn" onclick="document.getElementById('importFile').click(); playClick()" title="Import Previous Month List"><i class="ph-bold ph-file-arrow-up"></i></button>
         <button class="lang-btn share-btn" onclick="shareAsText('grocery'); playClick()" aria-label="Copy Text"><i class="ph-bold ph-copy"></i></button>
         <button class="lang-btn share-btn" onclick="shareAsImage('grocery')" aria-label="Share Image"><i class="ph-bold ph-image-square"></i></button>
-        <button class="lang-btn undo-btn" id="undo-grocery" onclick="undoData('grocery'); playClick()" aria-label="Undo"><i class="ph-bold ph-arrow-u-up-left"></i></button>
-        <button class="lang-btn clear-btn" onclick="clearGrocery(); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <button class="lang-btn undo-btn" id="undo-grocery" onclick="undoData('grocery'); playClick()" aria-label="Undo" style="height: 32px; width: 36px;"><i class="ph-bold ph-arrow-u-up-left"></i></button>
+          <button class="lang-btn clear-btn" onclick="clearGrocery(); playTrash()" aria-label="Clear" style="height: 32px; width: 36px;"><i class="ph-bold ph-trash"></i></button>
+        </div>
       </div>
     </div>
     <div id="grocery-date" class="grocery-date"></div>
@@ -448,19 +451,26 @@ select, input, datalist {
         <input id="gItemName" type="text" list="groceryItemsList" placeholder="e.g. Rice">
         <datalist id="groceryItemsList">
           <option value="Sperkle বাটি"><option value="সস(RS-15)"><option value="পাঁচ ফোড়ন"><option value="কালো জিরা">
-          <option value="কাবলী ছোলা"><option value="মটর"><option value="মুসুর ডাল"><option value="চা (TATA TEA GLOD)">
+          <option value="কাবলী ছোলা"><option value="মটর"><option value="মুসুর ডাল"><option value="চা (TATA TEA Gold)">
           <option value="চাউ"><option value="চিনি"><option value="বিস্কুট (JAYA MARIE)"><option value="Amul Spray">
           <option value="মৌরি"><option value="clinic plus"><option value="ধুপ কাঠি (বড়)"><option value="বাতাস (লাল)">
           <option value="colgate (50 GRAM)"><option value="চানাচুর (সাথী ঝাল)"><option value="চানাচুর (সাথী মিষ্টি)"><option value="জিরে গুঁড়ো (COOKME)">
           <option value="হলুদ গুঁড়ো (COOKME)"><option value="বরোলিন"><option value="Gillete Guard"><option value="Dettol SOAP">
-          <option value="Lux"><option value="Dove (ছোট)"><option value="Sunlight (500g)"><option value="ছোলা">
-          <option value="মুগ ডাল"><option value="বাদাম"><option value="Tata salt"><option value="সাদা সরষে">
+          <option value="Lux"><option value="Dove (ছোট)"><option value="Sunlight"><option value="কাঁচা ছোলা">
+          <option value="মুগ ডাল"><option value="কাঁচা বাদাম"><option value="Tata salt"><option value="সাদা সরষে">
           <option value="গোটা জিরা"><option value="সরষে তেল (FORTUNE)"><option value="সয়াবিন (ছোট)"><option value="দেশলাই">
           <option value="Dettol (liquid)"><option value="খেজুর"><option value="Jack Body Oil"><option value="Soya Sos">
           <option value="Chili Sos"><option value="JOL JIRA"><option value="Tooth Brush"><option value="ঘি (মর্টন)">
-          <option value="জিরা"><option value="আচার (MIXED)"><option value="পাপড় (BAT)"><option value="BIG B BISCUIT">
+          <option value="কালো সরষে"><option value="আচার (MIXED)"><option value="পাপড় (BAT)"><option value="BIG B BISCUIT">
           <option value="ময়দা"><option value="Closeup (50 GRAM)"><option value="ছোটো বোরি"><option value="পোস্ত">
-          <option value="MEAT MASALA"><option value="শাহী গরম মসলা গুড়ো"><option value="Sunflower Oil"><option value="ছোলার ডাল"><option value="নকুলদানা"></option>
+          <option value="MEAT MASALA"><option value="শাহী গরম মসলা গুড়ো"><option value="Sunflower Oil"><option value="ছোলার ডাল">
+            <option value="নকুলদানা">
+              <Option value="Tooth Paste(Dabour Lal)">
+            <Option value="পাপড় (Madhuri মশলা)"></Option>
+            <option value="Scrotch Bite"></option>
+            <option value="Steel Wool"></option>
+            
+            
         </datalist>
       </div>
       <div class="row">
@@ -1241,6 +1251,29 @@ function readResult(secId) {
     if (totals.length === 0) return;
     const msg = new SpeechSynthesisUtterance(isEn ? `The results are: ${totals.join(', ')}` : `ফলাফল হলো: ${totals.join(', ')}`);
     msg.lang = isEn ? 'en-IN' : 'bn-IN';
+    window.speechSynthesis.speak(msg);
+}
+
+function speakGroceryList() {
+    if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+    let text = "";
+    if (groceryItems.length === 0) {
+        text = isEn ? "Your grocery list is empty." : "আপনার মুদি তালিকা খালি।";
+    } else {
+        const itemStrings = groceryItems.map(it => `${toBn(Math.round(it.qty))} ${it.unit} ${it.name}`);
+        let listStr = "";
+        if (itemStrings.length === 1) {
+            listStr = itemStrings[0];
+        } else {
+            const last = itemStrings.pop();
+            listStr = itemStrings.join(', ') + (isEn ? ", and " : ", এবং ") + last;
+        }
+        text = (isEn ? "Your grocery list has: " : "আপনার মুদি তালিকায় আছে: ") + listStr;
+    }
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = isEn ? 'en-IN' : 'bn-IN';
+    msg.rate = 1.0;
+    msg.pitch = 1.0;
     window.speechSynthesis.speak(msg);
 }
 
