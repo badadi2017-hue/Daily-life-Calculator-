@@ -501,12 +501,12 @@ select, input, datalist {
           <option value="Sperkle বাটি"><option value="সস(RS-15)"><option value="পাঁচ ফোড়ন"><option value="কালো জিরা">
           <option value="কাবলী ছোলা"><option value="মটর"><option value="মুসুর ডাল"><option value="চা (TATA TEA Gold)">
           <option value="চাউ"><option value="চিনি"><option value="বিস্কুট (JAYA MARIE)"><option value="Amul Spray">
-          <option value="মৌরি"><option value="clinic plus"><option value="ধুপ কাঠি (বড়)"><option value="বাতাস (লাল)">
+          <option value="মৌরি"><option value="Clinic plus"><option value="ধুপ কাঠি (বড়)"><option value="বাতাস (লাল)">
           <option value="colgate (50 GRAM)"><option value="চানাচুর (সাথী ঝাল)"><option value="চানাচুর (সাথী মিষ্টি)"><option value="জিরে গুঁড়ো (COOKME)">
           <option value="হলুদ গুঁড়ো (COOKME)"><option value="বরোলিন"><option value="Gillete Guard"><option value="Dettol SOAP">
           <option value="Lux"><option value="Dove (ছোট)"><option value="Sunlight"><option value="কাঁচা ছোলা">
           <option value="মুগ ডাল"><option value="কাঁচা বাদাম"><option value="Tata salt"><option value="সাদা সরষে">
-          <option value="গোটা জিরা"><option value="সরষে তেল (FORTUNE)"><option value="সয়াবিন (ছোট)"><option value="দেশলাই">
+          <option value="গোটা জিরা"><option value="সরষে তেল (FORTUNE)"><option value="সোয়াবিন (বড়)"><option value="দেশলাই">
           <option value="Dettol (liquid)"><option value="খেজুর"><option value="Jack Body Oil"><option value="Soya Sos">
           <option value="Chili Sos"><option value="JOL JIRA"><option value="Tooth Brush"><option value="ঘি (মর্টন)">
             <Option Value="Sukno Lonka"></Option>
@@ -519,6 +519,8 @@ select, input, datalist {
             <Option value="পাপড় (Madhuri মশলা)"></Option>
             <option value="Scrotch Bite"></option>
             <option value="Steel Wool"></option>
+            <option value="সোয়াবিন (ছোট)"
+            
         </datalist>
       </div>
       <div class="row">
@@ -539,7 +541,7 @@ select, input, datalist {
       </div>
       <div>
         <label for="gItemPrice" data-lang="gPriceSingle">Price ₹</label>
-        <input id="gItemPrice" type="number" step="1" inputmode="numeric" placeholder="Price ₹ (Optional)">
+        <input id="gItemPrice" type="number" step="0.01" inputmode="decimal" placeholder="Price ₹ (Optional)">
       </div>
       <button class="add-btn-main" onclick="saveGroceryItem(); playClick()" id="gAddBtn">Add Item</button>
     </div>
@@ -574,10 +576,10 @@ select, input, datalist {
     <button class="lang-btn clear-btn" onclick="clearData('rate'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label for="price" data-lang="lPrice">Price per Kg</label><input id="price" type="number" inputmode="numeric" placeholder="0"></div>
-  <div class="row"><div><label for="weight" data-lang="lWeight">Weight</label><input id="weight" type="number" inputmode="numeric" placeholder="0"></div><div><label for="unit" data-lang="lUnit">Unit</label><select id="unit"><option value="g" data-lang="uGram">Gram</option><option value="kg" data-lang="uKg">Kg</option></select></div></div>
+  <div><label for="price" data-lang="lPrice">Price per Kg</label><input id="price" type="number" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><div><label for="weight" data-lang="lWeight">Weight</label><input id="weight" type="number" inputmode="decimal" placeholder="0"></div><div><label for="unit" data-lang="lUnit">Unit</label><select id="unit"><option value="g" data-lang="uGram">Gram</option><option value="kg" data-lang="uKg">Kg</option></select></div></div>
   <div class="box box-compact"><span data-lang="lTotal">Total</span><span class="total" id="total">₹ 0</span></div>
-  <div><label for="amount" data-lang="lPay">Pay Amount</label><input id="amount" type="number" inputmode="numeric" placeholder="0"></div>
+  <div><label for="amount" data-lang="lPay">Pay Amount</label><input id="amount" type="number" inputmode="decimal" placeholder="0"></div>
   <div class="box box-compact"><span data-lang="lRes">Result</span><span class="total" id="result">0 g</span></div>
  </div>
  <div class="footer-credit">Made with ❤️ by Aditya</div>
@@ -595,8 +597,8 @@ select, input, datalist {
     <button class="lang-btn clear-btn" onclick="clearData('fuel'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div class="row"><div><label for="fuelDist" data-lang="fDist">Distance (km)</label><input id="fuelDist" type="number" inputmode="numeric" placeholder="100"></div><div><label for="fuelMil" data-lang="fMil">Mileage (km/L)</label><input id="fuelMil" type="number" inputmode="numeric" placeholder="45"></div></div>
-  <div class="row"><div><label for="fuelPrice" data-lang="fPrc">Price (per L)</label><input id="fuelPrice" type="number" inputmode="numeric" placeholder="100"></div><div><label for="fuelSpeed" data-lang="fSpd">Speed (km/h)</label><input id="fuelSpeed" type="number" inputmode="numeric" placeholder="60"></div></div>
+  <div class="row"><div><label for="fuelDist" data-lang="fDist">Distance (km)</label><input id="fuelDist" type="number" inputmode="decimal" placeholder="100"></div><div><label for="fuelMil" data-lang="fMil">Mileage (km/L)</label><input id="fuelMil" type="number" inputmode="decimal" placeholder="45"></div></div>
+  <div class="row"><div><label for="fuelPrice" data-lang="fPrc">Price (per L)</label><input id="fuelPrice" type="number" inputmode="decimal" placeholder="100"></div><div><label for="fuelSpeed" data-lang="fSpd">Speed (km/h)</label><input id="fuelSpeed" type="number" inputmode="decimal" placeholder="60"></div></div>
   <div class="box" style="background: rgba(0,122,255,0.1);"><span data-lang="lTotal">Total Cost</span><span class="total" id="resFCost">0</span></div>
   <div class="grid-2"><div class="box"><span data-lang="fNeed">Fuel Needed</span><span class="total" id="resFFuel">0 L</span></div><div class="box"><span data-lang="fTime">Est. Time</span><span class="total" id="resFTime">0m</span></div></div>
  </div>
@@ -646,8 +648,8 @@ select, input, datalist {
     <button class="lang-btn clear-btn" onclick="clearData('emi'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label for="emiPrincipal" data-lang="eLoan">Loan Amount</label><input id="emiPrincipal" type="number" inputmode="numeric" placeholder="500000"></div>
-  <div class="row"><div><label for="emiRate" data-lang="eRate">Interest (%)</label><input id="emiRate" type="number" inputmode="numeric" placeholder="11"></div><div><label for="emiYears" data-lang="eYrs">Years</label><input id="emiYears" type="number" inputmode="numeric" placeholder="5"></div></div>
+  <div><label for="emiPrincipal" data-lang="eLoan">Loan Amount</label><input id="emiPrincipal" type="number" inputmode="decimal" placeholder="500000"></div>
+  <div class="row"><div><label for="emiRate" data-lang="eRate">Interest (%)</label><input id="emiRate" type="number" inputmode="decimal" placeholder="11"></div><div><label for="emiYears" data-lang="eYrs">Years</label><input id="emiYears" type="number" inputmode="decimal" placeholder="5"></div></div>
   <div class="box" style="background: rgba(0,122,255,0.1);"><span data-lang="eRes">Monthly EMI</span><span class="total" id="resEmi">0</span></div>
   <div class="emi-bar-wrap"><div id="emiBarInt" class="emi-bar-interest"></div></div>
   <div class="grid-2" style="margin-top:8px;"><div class="box"><span data-lang="eTInt">Total Interest</span><span class="total" id="resTotalInt">0</span></div><div class="box"><span data-lang="eTPay">Total Payment</span><span class="total" id="resTotalPay">0</span></div></div>
@@ -668,7 +670,7 @@ select, input, datalist {
     <button class="lang-btn clear-btn" onclick="clearData('currency'); playTrash()" aria-label="Clear"><i class="ph-bold ph-trash"></i></button>
    </div>
   </div>
-  <div><label for="curAmount" data-lang="cAmt">Amount</label><input id="curAmount" type="number" inputmode="numeric" value="1" placeholder="0"></div>
+  <div><label for="curAmount" data-lang="cAmt">Amount</label><input id="curAmount" type="number" inputmode="decimal" value="1" placeholder="0"></div>
   <div class="row"><div><label for="curFrom" data-lang="cFrom">From</label><select id="curFrom" onchange="convertCurrency()"></select></div><button class="swap-btn" onclick="swapCurrency(); playClick()" aria-label="Swap Currency"><i class="ph-bold ph-arrows-left-right"></i></button><div><label for="curTo" data-lang="cTo">To</label><select id="curTo" onchange="convertCurrency()"></select></div></div>
   <div class="box"><span data-lang="lRes">Result</span><span class="total" id="curResult">...</span><div class="rate-info" id="curRateInfo" style="font-size: 11px; color: var(--text-sec); margin-top: 4px;">Fetching...</div></div>
  </div>
@@ -688,7 +690,7 @@ select, input, datalist {
    </div>
   </div>
   <div><label for="pcMode" data-lang="pMode">Mode</label><select id="pcMode" onchange="doPercentCalc()"><option value="1">X is what % of Y</option><option value="2">X% of Y</option><option value="3">% Increase/Decrease</option></select></div>
-  <div class="row"><div><label for="pcIn1">X Value</label><input id="pcIn1" type="number" inputmode="numeric" placeholder="0"></div><div><label for="pcIn2">Y Value</label><input id="pcIn2" type="number" inputmode="numeric" placeholder="0"></div></div>
+  <div class="row"><div><label for="pcIn1">X Value</label><input id="pcIn1" type="number" inputmode="decimal" placeholder="0"></div><div><label for="pcIn2">Y Value</label><input id="pcIn2" type="number" inputmode="decimal" placeholder="0"></div></div>
   <div class="box"><span data-lang="lRes">Result</span><span class="total" id="pcRes">0</span></div>
  </div>
  <div class="footer-credit">Made with ❤️ by Aditya</div>
@@ -707,7 +709,7 @@ select, input, datalist {
    </div>
   </div>
   <div><label for="cvCat" data-lang="cvCat">Category</label><select id="cvCat" onchange="updateCvUnits()"></select></div>
-  <div class="row"><div><label for="cvIn" data-lang="cFrom">From</label><input id="cvIn" type="number" inputmode="numeric" oninput="doConvert()" placeholder="0"></div><div><label for="cvUnitFrom">&nbsp;</label><select id="cvUnitFrom" onchange="doConvert()"></select></div></div>
+  <div class="row"><div><label for="cvIn" data-lang="cFrom">From</label><input id="cvIn" type="number" inputmode="decimal" oninput="doConvert()" placeholder="0"></div><div><label for="cvUnitFrom">&nbsp;</label><select id="cvUnitFrom" onchange="doConvert()"></select></div></div>
   <div class="row"><div><label for="cvOut" data-lang="cTo">To</label><input id="cvOut" type="text" readonly placeholder="0"></div><div><label for="cvUnitTo">&nbsp;</label><select id="cvUnitTo" onchange="doConvert()"></select></div></div>
  </div>
  <div class="footer-credit">Made with ❤️ by Aditya</div>
@@ -776,6 +778,12 @@ let groceryItems = JSON.parse(localStorage.getItem('dlc_grocery') || '[]');
 let editIdx = -1;
 let sortableMenu = null;
 let isMenuEditMode = false;
+
+/* Logic for smart decimals */
+const formatNum = (num) => {
+  if (isNaN(num) || num === null) return "0";
+  return Number(num).toFixed(2).replace(/\.?0+$/, "");
+};
 
 /* --- BENGALI CALENDAR LOGIC --- */
 const bnMonths = ["বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ", "পৌষ", "মাঘ", "ফাল্গুন", "চৈত্র"];
@@ -1018,15 +1026,15 @@ function renderGrocery() {
   let totalBill = 0;
   
   groceryItems.forEach((item, index) => {
-    const itemPrice = Math.round(parseFloat(item.price) || 0);
+    const itemPrice = parseFloat(item.price) || 0;
     totalBill += itemPrice;
     const div = document.createElement('div');
     div.className = 'grocery-item';
-    const priceText = item.price ? `₹ ${toBn(itemPrice)}` : "-";
+    const priceText = item.price ? `₹ ${toBn(formatNum(itemPrice))}` : "-";
     div.innerHTML = `
       <div class="grocery-info">
         <span class="grocery-name">${item.name}</span>
-        <span class="grocery-qty">${toBn(Math.round(item.qty))} ${item.unit}</span>
+        <span class="grocery-qty">${toBn(formatNum(item.qty))} ${item.unit}</span>
       </div>
       <div class="grocery-price-display">${priceText}</div>
       <div class="grocery-actions">
@@ -1038,15 +1046,15 @@ function renderGrocery() {
   });
 
   $('gResTotalItems').textContent = toBn(groceryItems.length);
-  $('gResTotalBill').textContent = "₹ " + toBn(Math.round(totalBill));
+  $('gResTotalBill').textContent = "₹ " + toBn(formatNum(totalBill));
 }
 
 function saveGroceryItem() {
   const name = $('gItemName').value;
-  const qty = Math.round($('gItemQty').value);
+  const qty = parseFloat($('gItemQty').value);
   const unit = $('gItemUnit').value;
-  const price = Math.round($('gItemPrice').value);
-  if (!name || !qty) return;
+  const price = parseFloat($('gItemPrice').value);
+  if (!name || isNaN(qty)) return;
   saveHistory('grocery');
   if (editIdx > -1) {
     groceryItems[editIdx] = { name, qty, unit, price };
@@ -1072,9 +1080,9 @@ function deleteGroceryItem(index) {
 function editGroceryItem(index) {
   const item = groceryItems[index];
   $('gItemName').value = item.name;
-  $('gItemQty').value = Math.round(item.qty);
+  $('gItemQty').value = item.qty;
   $('gItemUnit').value = item.unit;
-  $('gItemPrice').value = item.price ? Math.round(item.price) : "";
+  $('gItemPrice').value = item.price ? item.price : "";
   editIdx = index;
   $('gAddBtn').textContent = isEn ? "Update Item" : "আপডেট করুন";
 }
@@ -1111,17 +1119,17 @@ function exportGroceryPDF() {
     const prefix = isEn ? "Grocery List" : "মুদি তালিকা";
     const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     const todayStr = new Date().toLocaleDateString(isEn ? 'en-US' : 'bn-IN', dateOptions);
-    let totalBill = groceryItems.reduce((acc, it) => acc + (Math.round(parseFloat(it.price)) || 0), 0);
+    let totalBill = groceryItems.reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
     const opt = {
         margin: [15, 15, 15, 15],
         filename: `${prefix} - ${todayStr}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        html2canvas: { scale: 3, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     const pdfContent = `
         <div style="font-family: sans-serif; padding: 10px; color: #000; width: 100%;">
-            <div style="text-align: center; border-bottom: 6px solid #007AFF; padding-bottom: 10px; margin-bottom: 10px;">
+            <div style="text-align: center; border-bottom: 6px solid #007AFF; padding-bottom: 10px; margin-bottom: 20px;">
                 <h1 style="font-size: 50px; margin: 0; color: #007AFF;">${prefix}</h1>
                 <p style="font-size: 40px; color: #666; margin-top: 15px;">${todayStr}</p>
             </div>
@@ -1137,15 +1145,15 @@ function exportGroceryPDF() {
                     ${groceryItems.map(it => `
                         <tr style="border-bottom: 1px solid #eee;">
                             <td style="padding: 15px 12px; font-size: 28px; font-weight: bold;">${it.name}</td>
-                            <td style="padding: 15px 12px; font-size: 28px; text-align: center;">${toBn(Math.round(it.qty))} ${it.unit}</td>
-                            <td style="padding: 15px 12px; font-size: 28px; text-align: right;">${it.price ? toBn(Math.round(parseFloat(it.price))) : ""}</td>
+                            <td style="padding: 15px 12px; font-size: 28px; text-align: center;">${toBn(formatNum(it.qty))} ${it.unit}</td>
+                            <td style="padding: 15px 12px; font-size: 28px; text-align: right;">${it.price ? toBn(formatNum(parseFloat(it.price))) : ""}</td>
                         </tr>
                     `).join('')}
                 </tbody>
             </table>
             <div style="margin-top: 20px; border-top: 4px solid #007AFF; padding-top: 10px; text-align: right;">
                 <p style="font-size: 36px; font-weight: bold; margin: 0; color: #007AFF;">
-                    ${isEn ? "Total Bill: ₹" : "মোট বিল: ₹"} ${toBn(Math.round(totalBill))}
+                    ${isEn ? "Total Bill: ₹" : "মোট বিল: ₹"} ${toBn(formatNum(totalBill))}
                 </p>
             </div>
         </div>
@@ -1155,10 +1163,10 @@ function exportGroceryPDF() {
 
 function exportGroceryExcel() {
   const table = $('groceryTable');
-  let totalBill = groceryItems.reduce((acc, it) => acc + (Math.round(parseFloat(it.price)) || 0), 0);
+  let totalBill = groceryItems.reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
   let html = `<thead><tr><th>Item</th><th>Quantity</th><th>Unit</th><th>Price ₹</th></tr></thead><tbody>`;
-  html += groceryItems.map(it => `<tr><td>${it.name}</td><td>${Math.round(it.qty)}</td><td>${it.unit}</td><td>${Math.round(it.price) || ""}</td></tr>`).join('');
-  html += `<tr><td colspan="3" style="font-weight:bold;">Total Bill</td><td style="font-weight:bold;">${Math.round(totalBill)}</td></tr>`;
+  html += groceryItems.map(it => `<tr><td>${it.name}</td><td>${formatNum(it.qty)}</td><td>${it.unit}</td><td>${it.price ? formatNum(it.price) : ""}</td></tr>`).join('');
+  html += `<tr><td colspan="3" style="font-weight:bold;">Total Bill</td><td style="font-weight:bold;">${formatNum(totalBill)}</td></tr>`;
   html += `</tbody>`;
   table.innerHTML = html;
   const wb = XLSX.utils.table_to_book(document.getElementById("groceryTable"), {sheet:"Grocery"});
@@ -1182,9 +1190,9 @@ function handleImport(e) {
       if(row.Item === "Total Bill") return;
       groceryItems.push({
         name: row.Item || row.name || "Unknown",
-        qty: Math.round(row.Quantity || row.qty || 1),
+        qty: parseFloat(row.Quantity || row.qty || 1),
         unit: row.Unit || row.unit || "পিস",
-        price: row['Price ₹'] ? Math.round(row['Price ₹']) : ""
+        price: row['Price ₹'] ? parseFloat(row['Price ₹']) : ""
       });
     });
     localStorage.setItem('dlc_grocery', JSON.stringify(groceryItems));
@@ -1203,20 +1211,20 @@ function calc() {
     if (pricePerKg > 0 && weightValue > 0) {
         totalPrice = (unit === 'kg') ? (pricePerKg * weightValue) : ((pricePerKg / 1000) * weightValue);
     }
-    $('total').textContent = "₹ " + toBn(Math.round(totalPrice));
+    $('total').textContent = "₹ " + toBn(formatNum(totalPrice));
     let weightResult = 0;
     if (pricePerKg > 0 && payAmount > 0) weightResult = (payAmount / pricePerKg) * 1000;
-    $('result').textContent = toBn(Math.round(weightResult)) + " g";
+    $('result').textContent = toBn(formatNum(weightResult)) + " g";
 }
 
 function doEmiCalc() {
     const P=+$('emiPrincipal').value, R=+$('emiRate').value, N=+$('emiYears').value;
     if(P && N) {
         let emi = (R > 0) ? (P*(R/12/100)*Math.pow(1+(R/12/100),N*12))/(Math.pow(1+(R/12/100),N*12)-1) : P/(N*12);
-        $('resEmi').textContent=toBn(Math.round(emi));
+        $('resEmi').textContent=toBn(formatNum(emi));
         const totalPay = emi * N * 12;
-        $('resTotalPay').textContent=toBn(Math.round(totalPay));
-        $('resTotalInt').textContent=toBn(Math.round(totalPay - P));
+        $('resTotalPay').textContent=toBn(formatNum(totalPay));
+        $('resTotalInt').textContent=toBn(formatNum(totalPay - P));
         $('emiBarInt').style.width = ((totalPay - P) / totalPay * 100) + "%";
     }
 }
@@ -1245,7 +1253,6 @@ function doAgeCalc() {
 }
 
 function getBengaliCalendarDateShort(date) {
-    const months = ["বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ", "পৌষ", "মাঘ", "ফালগুন", "চৈত্র"];
     const info = getBengaliDateInfo(date);
     return `${toBn(info.day)} ${info.month}, ${toBn(info.year)}`;
 }
@@ -1320,8 +1327,8 @@ function doFuelCalc(){
     const d=+$('fuelDist').value, m=+$('fuelMil').value, p=+$('fuelPrice').value, s=+$('fuelSpeed').value;
     if(d && m > 0) {
         const fuel = d/m;
-        $('resFCost').textContent= toBn(Math.round(fuel*p));
-        $('resFFuel').textContent= toBn(Math.round(fuel)) + (isEn ? " L" : " লি.");
+        $('resFCost').textContent= toBn(formatNum(fuel*p));
+        $('resFFuel').textContent= toBn(formatNum(fuel)) + (isEn ? " L" : " লি.");
         if(s > 0) {
           const tH = d/s, h = Math.floor(tH), min = Math.round((tH - h) * 60);
           $('resFTime').textContent = toBn(h) + "h " + toBn(min) + "m";
@@ -1331,13 +1338,13 @@ function doFuelCalc(){
 async function convertCurrency(){
     const f=$('curFrom').value, t=$('curTo').value, a=+$('curAmount').value;
     if(!$('curResult') || a <= 0) return;
-    if(f === t) { $('curResult').textContent = f + " " + Math.round(a); $('curRateInfo').textContent = `1 ${f} = 1 ${t}`; return; }
+    if(f === t) { $('curResult').textContent = f + " " + formatNum(a); $('curRateInfo').textContent = `1 ${f} = 1 ${t}`; return; }
     try {
         const r = await fetch(`https://api.exchangerate-api.com/v4/latest/${f}`);
         const d = await r.json();
         const rate = d.rates[t];
-        $('curResult').textContent = t + " " + Math.round(a * rate);
-        $('curRateInfo').textContent = `1 ${f} = ${toBn(Math.round(rate))} ${t}`;
+        $('curResult').textContent = t + " " + formatNum(a * rate);
+        $('curRateInfo').textContent = `1 ${f} = ${toBn(formatNum(rate))} ${t}`;
     } catch(e) { $('curResult').textContent = isEn ? "Offline" : "অফলাইন"; }
 }
 function initCurSelects(){
@@ -1365,14 +1372,14 @@ function doConvert() {
     let res = 0;
     if(cvData[cat].type === "special") res = (u1==='c' && u2==='f') ? (val*9/5)+32 : (u1==='f' && u2==='c') ? (val-32)*5/9 : val;
     else res = (val * cvData[cat].units[u1]) / cvData[cat].units[u2];
-    $('cvOut').value = toBn(Math.round(res));
+    $('cvOut').value = toBn(formatNum(res));
 }
 function doPercentCalc(){
     const m=$('pcMode').value, v1=+$('pcIn1').value, v2=+$('pcIn2').value;
     let r = 0;
-    if(m === '1' && v2 !== 0) r = Math.round((v1/v2)*100) + "%";
-    else if(m === '2') r = Math.round((v1/100)*v2);
-    else if(m === '3' && v1 !== 0) r = Math.round(((v2-v1)/v1)*100) + "%";
+    if(m === '1' && v2 !== 0) r = formatNum((v1/v2)*100) + "%";
+    else if(m === '2') r = formatNum((v1/100)*v2);
+    else if(m === '3' && v1 !== 0) r = formatNum(((v2-v1)/v1)*100) + "%";
     $('pcRes').textContent = toBn(r);
 }
 const notes = [500, 200, 100, 50, 20, 10, 5, 2, 1];
@@ -1387,7 +1394,7 @@ function initCash() {
 }
 function doCash() {
     let total = 0; notes.forEach(n => { total += (Math.floor(+$('n'+n)?.value||0)) * n; });
-    $('resCashTotal').textContent = "₹ " + toBn(Math.round(total));
+    $('resCashTotal').textContent = "₹ " + toBn(formatNum(total));
 }
 function clearData(secId) { 
     document.querySelectorAll(`#${secId} input`).forEach(i=>i.value=""); 
@@ -1438,7 +1445,7 @@ function speakGroceryList() {
     if (groceryItems.length === 0) {
         text = isEn ? "Your grocery list is empty." : "আপনার মুদি তালিকা খালি।";
     } else {
-        const itemStrings = groceryItems.map(it => `${toBn(Math.round(it.qty))} ${it.unit} ${it.name}`);
+        const itemStrings = groceryItems.map(it => `${toBn(formatNum(it.qty))} ${it.unit} ${it.name}`);
         let listStr = "";
         if (itemStrings.length === 1) {
             listStr = itemStrings[0];
@@ -1457,12 +1464,24 @@ function speakGroceryList() {
 
 function shareAsText(secId) {
     const section = $(secId); if(!section) return;
-    const title = section.querySelector('h2').innerText;
-    let results = (secId === 'grocery') ? groceryItems.map(it => `- ${it.name}: ${Math.round(it.qty)} ${it.unit} ${it.price ? '(₹' + Math.round(it.price) + ')' : ''}`).join('\n') : Array.from(section.querySelectorAll('.box, .info-row')).map(b => {
-        const label = (b.querySelector('span:first-child')?.innerText || b.querySelector('.info-label')?.innerText || "").trim();
-        const val = (b.querySelector('.total')?.innerText || b.querySelector('.info-val')?.innerText || "").trim();
-        return (label && val) ? `${label}: ${val}` : "";
-    }).filter(x => x).join('\n');
+    let title = section.querySelector('h2').innerText;
+    let results = "";
+    
+    if(secId === 'grocery') {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+        title = `Grocery List - ${dateStr}`;
+        results = groceryItems.map(it => `- ${it.name}: ${formatNum(it.qty)} ${it.unit} ${it.price ? '(₹' + formatNum(it.price) + ')' : ''}`).join('\n');
+        const totalBill = groceryItems.reduce((acc, it) => acc + (parseFloat(it.price) || 0), 0);
+        results += `\n\nTotal Bill: ₹${formatNum(totalBill)}`;
+    } else {
+        results = Array.from(section.querySelectorAll('.box, .info-row')).map(b => {
+            const label = (b.querySelector('span:first-child')?.innerText || b.querySelector('.info-label')?.innerText || "").trim();
+            const val = (b.querySelector('.total')?.innerText || b.querySelector('.info-val')?.innerText || "").trim();
+            return (label && val) ? `${label}: ${val}` : "";
+        }).filter(x => x).join('\n');
+    }
+    
     const fullText = `${title}\n---\n${results}\n\nShared via Daily Life Calculator`;
     if(navigator.share) navigator.share({ title: title, text: fullText });
     else navigator.clipboard.writeText(fullText).then(() => alert(isEn ? "Copied!" : "কপি করা হয়েছে!"));
