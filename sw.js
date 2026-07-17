@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daily-calc-v3';
+const CACHE_NAME = 'daily-calc-v4';
 const CORE_ASSETS = [
   './index.html',
   './manifest.json',
